@@ -21,8 +21,11 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# Ignore Python lib directories (but not frontend lib)
+fuel-tracker-backend/lib/
+fuel-tracker-backend/lib64/
+venv/lib/
+venv/lib64/
 parts/
 sdist/
 var/
