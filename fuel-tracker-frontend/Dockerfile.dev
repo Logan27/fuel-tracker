@@ -8,8 +8,16 @@ COPY package*.json ./
 # Устанавливаем зависимости
 RUN npm ci
 
-# Копируем остальные файлы
-COPY . .
+# Копируем конфигурационные файлы (важен порядок для правильного резолва импортов)
+COPY tsconfig*.json ./
+COPY vite.config.ts ./
+COPY postcss.config.js ./
+COPY tailwind.config.ts ./
+COPY index.html ./
+
+# Копируем исходники
+COPY src ./src
+COPY public ./public
 
 # Expose порт для Vite dev server
 EXPOSE 3000
