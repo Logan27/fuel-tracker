@@ -1,0 +1,2 @@
+export { useBrandStatistics } from './useBrandStatistics';
+
