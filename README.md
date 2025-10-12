@@ -53,6 +53,23 @@ docker compose up --build
 
 **Подробные инструкции:** См. [SETUP.md](SETUP.md)
 
+### Production Build
+
+Для production деплоя с оптимизированным frontend:
+
+```bash
+# Production режим с nginx
+docker compose -f docker-compose.prod.yml up --build
+
+# Или локальный build
+# Windows:
+build-frontend.bat
+
+# Linux/Mac:
+chmod +x build-frontend.sh
+./build-frontend.sh
+```
+
 ### Доступ к приложению
 
 - **Frontend:** http://localhost:3000
