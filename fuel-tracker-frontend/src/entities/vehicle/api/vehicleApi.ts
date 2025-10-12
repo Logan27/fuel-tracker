@@ -1,11 +1,13 @@
-import { retryApiClient } from '@/shared/api';
+import { retryApiClient, type PaginatedResponse } from '@/shared/api';
 import { showSuccess, handleApiError } from '@/shared/lib/toast/toastService';
 import type { Vehicle, CreateVehicleDto, UpdateVehicleDto } from '../model/types';
 
 export const vehicleApi = {
   getAll: async (): Promise<Vehicle[]> => {
     try {
-      return await retryApiClient.get<Vehicle[]>('/vehicles');
+      const response = await retryApiClient.get<PaginatedResponse<Vehicle>>('/vehicles');
+      // Backend возвращает пагинированный ответ, извлекаем массив
+      return response.results;
     } catch (error) {
       handleApiError(error, 'Loading vehicles');
       throw error;

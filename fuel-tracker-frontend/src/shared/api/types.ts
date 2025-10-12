@@ -13,6 +13,7 @@ export interface ApiResponse<T = unknown> {
 }
 
 export interface PaginatedResponse<T> {
+  count?: number; // PageNumberPagination возвращает count
   next: string | null;
   previous: string | null;
   results: T[];
