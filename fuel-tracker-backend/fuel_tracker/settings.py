@@ -212,6 +212,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://localhost:8000').split(',')
 CORS_ALLOW_CREDENTIALS = True  # Разрешить cookies для auth
 
+# CSRF Trusted Origins
+# Django 4.0+ requires explicit CSRF_TRUSTED_ORIGINS for cross-origin requests
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost:3000,http://localhost:8000').split(',')
+
 # Security: Additional CORS settings
 CORS_ALLOW_HEADERS = [
     'accept',
