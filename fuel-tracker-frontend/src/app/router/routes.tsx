@@ -83,9 +83,6 @@ export const AppRoutes = () => {
         }
       />
 
-      {/* Redirect from root to dashboard if already authed */}
-      <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-
       {/* Catch-all 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>
