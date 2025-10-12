@@ -3,7 +3,7 @@ import { AlertCircle, RefreshCw, Wifi, WifiOff } from "lucide-react";
 import { Button } from "./button";
 import { Card, CardContent } from "./card";
 import { Alert, AlertDescription, AlertTitle } from "./alert";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 interface ErrorStateProps {
   title: string;

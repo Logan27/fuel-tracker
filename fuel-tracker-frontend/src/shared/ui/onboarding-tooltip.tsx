@@ -2,7 +2,7 @@ import * as React from "react";
 import { X, ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { Button } from "./button";
 import { Card, CardContent } from "./card";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 interface OnboardingTooltipProps {
   isVisible: boolean;

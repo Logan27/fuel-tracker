@@ -1,5 +1,5 @@
 import * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { useTouchDevice } from "../hooks/useResponsive";
 
 // Touch-friendly button with larger touch targets

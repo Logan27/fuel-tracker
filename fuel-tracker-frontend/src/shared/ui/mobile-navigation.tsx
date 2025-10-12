@@ -4,7 +4,7 @@ import { Button } from "./button";
 import { Sheet, SheetContent, SheetTrigger } from "./sheet";
 import { Badge } from "./badge";
 import { useResponsive } from "../hooks/useResponsive";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import {
   Fuel,
   LayoutDashboard,
