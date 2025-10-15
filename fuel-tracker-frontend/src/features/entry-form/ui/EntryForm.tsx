@@ -392,13 +392,8 @@ export const EntryForm = ({
 
         {/* Form Actions */}
         <div className="flex gap-2 justify-end pt-4">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-              Cancel
-            </Button>
-          )}
-          <LoadingButton 
-            type="submit" 
+          <LoadingButton
+            type="submit"
             isLoading={isLoading}
             loadingText={entry ? 'Updating...' : 'Creating...'}
           >

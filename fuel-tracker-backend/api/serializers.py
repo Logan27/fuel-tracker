@@ -134,8 +134,13 @@ class VehicleSerializer(serializers.ModelSerializer):
         instance = super().update(instance, validated_data)
 
         # If initial_odometer changed, run full metrics recalculation
-        if 'initial_odometer' in validated_data and validated_data['initial_odometer'] != initial_odometer_before_update:
-            FuelEntryMetricsService.recalculate_all_metrics_for_vehicle(instance.id)
+        if 'initial_odometer' in validated_data and instance.initial_odometer != initial_odometer_before_update:
+            # Pass the updated instance to the service to ensure the new
+            # initial_odometer is used, avoiding potential transaction isolation issues.
+            FuelEntryMetricsService.recalculate_all_metrics_for_vehicle(
+                vehicle_id=instance.id, 
+                vehicle_instance=instance
+            )
 
             # Invalidate statistics cache for this user
             # This ensures dashboard shows updated data
@@ -288,9 +293,13 @@ class FuelEntrySerializer(serializers.ModelSerializer):
         Odometer must be greater than all previous and less than all subsequent entries.
         """
         # Check that odometer is not less than initial value for vehicle
-        if odometer < vehicle.initial_odometer:
+        if odometer <= vehicle.initial_odometer:
             raise serializers.ValidationError({
-                'odometer': f"Odometer reading cannot be less than the vehicle's initial odometer ({vehicle.initial_odometer} km)."
+                'odometer': {
+                    "code": "odometer_le_initial",
+                    "message": f"Odometer reading must be greater than the vehicle's initial odometer ({vehicle.initial_odometer} km).",
+                    "initial_odometer": vehicle.initial_odometer
+                }
             })
 
         # Check previous entries (odometer must be greater)
@@ -302,7 +311,12 @@ class FuelEntrySerializer(serializers.ModelSerializer):
         
         if previous_entry and odometer <= previous_entry.odometer:
             raise serializers.ValidationError({
-                'odometer': f"Odometer reading must be greater than the previous entry ({previous_entry.odometer} km on {previous_entry.entry_date})."
+                'odometer': {
+                    "code": "odometer_le_previous",
+                    "message": f"Odometer reading must be greater than the previous entry ({previous_entry.odometer} km on {previous_entry.entry_date}).",
+                    "previous_odometer": previous_entry.odometer,
+                    "previous_date": previous_entry.entry_date
+                }
             })
         
         # Check subsequent entries (odometer must be less)
@@ -314,5 +328,10 @@ class FuelEntrySerializer(serializers.ModelSerializer):
         
         if next_entry and odometer >= next_entry.odometer:
             raise serializers.ValidationError({
-                'odometer': f"Odometer reading must be less than the next entry ({next_entry.odometer} km on {next_entry.entry_date})."
+                'odometer': {
+                    "code": "odometer_ge_next",
+                    "message": f"Odometer reading must be less than the next entry ({next_entry.odometer} km on {next_entry.entry_date}).",
+                    "next_odometer": next_entry.odometer,
+                    "next_date": next_entry.entry_date
+                }
             })

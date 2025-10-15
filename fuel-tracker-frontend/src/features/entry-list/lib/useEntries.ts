@@ -13,7 +13,7 @@ export const useEntries = (filters?: FuelEntryFilters) => {
         ...filters,
         cursor: pageParam,
       }),
-    getnextPageParam: (lastPage) => {
+    getNextPageParam: (lastPage) => {
       // Extract cursor from next URL
       if (!lastPage.next) return undefined;
       try {
@@ -23,7 +23,7 @@ export const useEntries = (filters?: FuelEntryFilters) => {
         return undefined;
       }
     },
-    getpreviousPageParam: (firstPage) => {
+    getPreviousPageParam: (firstPage) => {
       // Extract cursor from previous URL
       if (!firstPage.previous) return undefined;
       try {

@@ -11,7 +11,13 @@ export const validateOdometerMonotonicity = async (
   excludeEntryId?: number
 ): Promise<{ isValid: boolean; lastOdometer?: number; message?: string }> => {
   try {
-    // Get last entry for this vehicle
+    // If editing existing entry, skip client-side validation
+    // Backend will validate against chronological neighbors properly
+    if (excludeEntryId) {
+      return { isValid: true };
+    }
+
+    // Get last entry for this vehicle (only for new entries)
     const response = await apiClient.get<{ results: FuelEntry[] }>(
       '/fuel-entries/',
       {
@@ -31,12 +37,6 @@ export const validateOdometerMonotonicity = async (
     }
 
     const lastEntry = entries[0];
-
-    // If editing existing entry, exclude it from check
-    if (excludeEntryId && lastEntry.id === excludeEntryId) {
-      return { isValid: true };
-    }
-
     const lastOdometer = lastEntry.odometer;
 
     if (newOdometer <= lastOdometer) {

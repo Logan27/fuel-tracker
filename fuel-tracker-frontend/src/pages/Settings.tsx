@@ -1,4 +1,4 @@
-import { Navigation } from '@/widgets/navigation';
+import { DashboardLayout } from '@/widgets/dashboard/ui/DashboardLayout';
 import { SettingsForm } from '@/features/user-settings';
 import { ExportDataButton, DeleteAccountDialog } from '@/features/user-profile';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -9,9 +9,8 @@ const Settings = () => {
   const { user } = useAuthStore();
 
   return (
-    <div className="min-h-screen bg-secondary/30">
-      <Navigation />
-      <div className="container mx-auto px-4 py-8 max-w-3xl space-y-6">
+    <DashboardLayout>
+      <div className="max-w-3xl mx-auto space-y-6">
         {/* User Info */}
         <Card>
           <CardHeader>
@@ -61,7 +60,7 @@ const Settings = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

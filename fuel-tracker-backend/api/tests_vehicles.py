@@ -186,12 +186,12 @@ class VehicleCRUDTestCase(APITestCase):
         from .services import FuelEntryMetricsService
         FuelEntryMetricsService.recalculate_all_metrics_for_vehicle(self.vehicle1.id)
 
-        # Check that first entry is baseline (no metrics except unit_price)
-        # According to BRD 3.5: "Per-fill Computed Fields (for each entry after the baseline)"
+        # NEW LOGIC: First entry calculates metrics from initial_odometer
+        # According to updated requirements: first entry should calculate from initial_odometer, not be baseline
         entry1.refresh_from_db()
-        self.assertIsNone(entry1.distance_since_last)  # baseline entry has no metrics
+        self.assertEqual(entry1.distance_since_last, 500)  # 500 - 0 (initial_odometer)
 
-        # Second entry should have metrics
+        # Second entry should have metrics relative to entry1
         entry2.refresh_from_db()
         self.assertEqual(entry2.distance_since_last, 500)  # 1000 - 500
 
@@ -202,11 +202,11 @@ class VehicleCRUDTestCase(APITestCase):
         self.assertEqual(response.data['initial_odometer'], 100)
 
         # Check that metrics were recalculated
-        # entry1 remains baseline (no metrics)
+        # entry1 is now calculated from new initial_odometer
         entry1.refresh_from_db()
-        self.assertIsNone(entry1.distance_since_last)
+        self.assertEqual(entry1.distance_since_last, 400)  # 500 - 100 (new initial_odometer)
 
-        # entry2 is recalculated relative to entry1
+        # entry2 is recalculated relative to entry1 (unchanged)
         entry2.refresh_from_db()
         self.assertEqual(entry2.distance_since_last, 500)  # 1000 - 500 (unchanged)
     

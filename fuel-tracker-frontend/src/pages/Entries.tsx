@@ -9,7 +9,7 @@ import { DashboardLayout } from '@/widgets/dashboard/ui/DashboardLayout';
 import { EntryList, EntryFilters, useEntries } from '@/features/entry-list';
 import { EntryDetails } from '@/features/entry-list/ui/EntryDetails';
 import { useEntryFilters } from '@/features/entry-list/lib/useEntryFilters';
-import { useEntryForm } from '@/features/entry-form';
+import { useEntryActions } from '@/features/entry-list/lib/useEntryActions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,7 +46,7 @@ const Entries = () => {
   } = useEntries(filters);
 
   // Entry mutations
-  const { handleDelete, isDeleting } = useEntryForm();
+  const { deleteEntry: handleDelete, isDeleting } = useEntryActions();
 
   // Flatten paginated data
   const allEntries = data?.pages.flatMap((page) => page.results) || [];
@@ -61,7 +61,7 @@ const Entries = () => {
 
   const handleDeleteConfirm = () => {
     if (deleteEntry) {
-      handleDelete();
+      handleDelete(deleteEntry.id);
       setDeleteEntry(null);
     }
   };
@@ -108,7 +108,6 @@ const Entries = () => {
         onClose={() => setViewDetailsEntry(null)}
         onEdit={handleEdit}
         onDelete={setDeleteEntry}
-        vehicleName={viewDetailsEntry ? vehicles.find(v => v.id === viewDetailsEntry.vehicle_id)?.name : undefined}
       />
 
       {/* Delete Confirmation Dialog */}

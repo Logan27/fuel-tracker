@@ -4,9 +4,9 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { vehicleApi } from '@/entities/vehicle';
 import { fuelEntryApi } from '@/entities/fuel-entry';
-import { Navigation } from '@/widgets/navigation';
 import { EntryForm, useEntryForm } from '@/features/entry-form';
 import { useVehicleStore } from '@/app/stores';
+import { DashboardLayout } from '@/widgets/dashboard/ui/DashboardLayout';
 
 const EntryFormPage = () => {
   const { id } = useParams();
@@ -31,28 +31,24 @@ const EntryFormPage = () => {
 
   if (id && isLoadingEntry) {
     return (
-      <div className="min-h-screen bg-secondary/30">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-secondary/30">
-      <Navigation />
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <DashboardLayout>
+      <div className="max-w-4xl mx-auto">
         <div className="mb-6">
           <Button variant="ghost" onClick={() => navigate('/entries')} className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Entries
           </Button>
-          <h1 className="text-4xl font-bold mb-2">
-            {id ? 'Edit' : 'Add'} Fuel Entry
+          <h1 className="text-2xl font-bold mb-2">
+            {id ? 'Edit' : 'Add'} Entry
           </h1>
           <p className="text-muted-foreground">
             {id
@@ -79,7 +75,7 @@ const EntryFormPage = () => {
           />
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

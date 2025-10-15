@@ -57,10 +57,10 @@ class SignUpView(generics.CreateAPIView):
         user.save()
         
         logger.info(f"New user registered: {user.email}, locale: {currency}, {timezone}")
-        
+
         # Explicitly specify which backend was used for authentication
         # This is necessary since we have multiple backends
-        user.backend = 'users.backends.emailBackend'
+        user.backend = 'users.backends.EmailBackend'
         login(request, user)
         return Response(UserSignUpResponseSerializer(user).data, status=status.HTTP_201_CREATED)
 
@@ -121,7 +121,7 @@ class SignInView(generics.GenericAPIView):
             logger.info(f"Successful login: {user.email}")
             
             # Explicitly specify which backend was used for authentication
-            user.backend = 'users.backends.emailBackend'
+            user.backend = 'users.backends.EmailBackend'
             login(request, user)
             return Response(UserSerializer(user).data)
         

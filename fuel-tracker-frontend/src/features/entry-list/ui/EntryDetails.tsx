@@ -24,6 +24,9 @@ import { Separator } from '@/shared/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import type { FuelEntry } from '@/entities/fuel-entry';
 
+import { useQuery } from '@tanstack/react-query';
+import { vehicleApi } from '@/entities/vehicle';
+
 // Helper to ensure numeric values (Django may return strings for Decimal fields)
 const toNumber = (value: number | string | undefined | null): number => {
   if (value === undefined || value === null) return 0;
@@ -36,7 +39,6 @@ interface EntryDetailsProps {
   onClose: () => void;
   onEdit?: (entry: FuelEntry) => void;
   onDelete?: (entry: FuelEntry) => void;
-  vehicleName?: string;
 }
 
 export const EntryDetails = memo(({
@@ -45,9 +47,18 @@ export const EntryDetails = memo(({
   onClose,
   onEdit,
   onDelete,
-  vehicleName,
 }: EntryDetailsProps) => {
   const { pricePrecision } = useUnitConversion();
+
+  // Fetch vehicle data based on the entry
+  const { data: vehicle } = useQuery({
+    queryKey: ['vehicle', entry?.vehicle_id],
+    queryFn: () => vehicleApi.getById(entry!.vehicle_id),
+    enabled: !!entry,
+  });
+
+  const vehicleName = vehicle?.name;
+
   const entryDate = useMemo(() => entry ? new Date(entry.entry_date) : null, [entry]);
   const formattedDate = useMemo(() => entryDate ? format(entryDate, 'PPP') : '', [entryDate]);
   const formattedCreatedAt = useMemo(() => 
@@ -71,15 +82,10 @@ export const EntryDetails = memo(({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Fuel Entry Details
-            </DialogTitle>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Fuel Entry Details
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">

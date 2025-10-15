@@ -15,9 +15,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { setSettings } = useUserSettingsStore();
 
   useEffect(() => {
-    const checksession = async () => {
+    const checkSession = async () => {
       setLoading(true);
       try {
+        // Only check session if sessionid cookie exists
+        // This avoids making unnecessary API calls and showing errors for unauthenticated users
+        const hasSessionCookie = document.cookie.includes('sessionid=');
+
+        if (!hasSessionCookie) {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
         const user = await userApi.getMe();
         setUser(user);
         // Always sync user settings from DB
@@ -38,7 +48,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     };
 
-    checksession();
+    checkSession();
   }, []); // Run only on mount
 
   return <>{children}</>;

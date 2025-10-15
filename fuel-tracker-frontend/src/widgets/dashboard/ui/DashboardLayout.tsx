@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/utils';
 import { useAuth } from '@/features/auth';
@@ -55,6 +55,7 @@ interface DashboardLayoutProps {
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { signOut, isSigningOut } = useAuth();
   const { user } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -128,13 +129,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
             {/* User Profile & Actions */}
             <div className="flex items-center gap-3">
-              <Button
-                onClick={() => window.location.href = '/entries/new'}
-                className="gradient-hero"
-                size="sm"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Entry
+              <Button asChild className="gradient-hero" size="sm">
+                <Link to={ROUTES.ENTRIES_NEW}>
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Entry
+                </Link>
               </Button>
               
               <DropdownMenu>
@@ -190,13 +189,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </Link>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                onClick={() => window.location.href = '/entries/new'}
-                className="gradient-hero"
-                size="sm"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                <span className="hidden sm:inline">Add Entry</span>
+              <Button asChild className="gradient-hero" size="sm">
+                <Link to={ROUTES.ENTRIES_NEW}>
+                  <Plus className="w-4 h-4 mr-1" />
+                  <span className="hidden sm:inline">Add Entry</span>
+                </Link>
               </Button>
             </div>
           </div>

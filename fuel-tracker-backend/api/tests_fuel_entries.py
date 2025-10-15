@@ -55,11 +55,12 @@ class FuelEntryCRUDTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('id', response.data)
         self.assertEqual(response.data['odometer'], 10000)
-        
-        # Calculated fields should be null for baseline
-        self.assertIsNone(response.data['distance_since_last'])
-        self.assertIsNone(response.data['consumption_l_100km'])
-        
+
+        # NEW LOGIC: First entry calculates metrics from initial_odometer
+        # distance_since_last = 10000 - 0 (initial_odometer) = 10000
+        self.assertEqual(response.data['distance_since_last'], 10000)
+        self.assertIsNotNone(response.data['consumption_l_100km'])
+
         # unit_price should be calculated
         self.assertIsNotNone(response.data['unit_price'])
         self.assertEqual(float(response.data['unit_price']), 55.0)  # 2750/50

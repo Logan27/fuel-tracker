@@ -41,29 +41,31 @@ def generate_safe_cache_key(prefix, user_id, **kwargs):
 class FuelEntryCursorPagination(CursorPagination):
     """
     Custom pagination for FuelEntry
-    Sort by date (newest first), then by created_at
+    Sort by date (newest first), then by odometer (highest first for same day)
     """
     page_size = 25
     max_page_size = 100  # DoS Protection: maximum 100 records at once
-    ordering = '-entry_date'  # Sort by fuel date (newest first)
-    
+    ordering = ['-entry_date', '-odometer']  # Sort by date desc, then odometer desc
+
     def get_ordering(self, request, queryset, view):
         """
         Get sorting from request parameters or use default
         """
         sort_by = request.query_params.get('sort_by', 'entry_date')
         sort_order = request.query_params.get('sort_order', 'desc')
-        
+
         # Validation of sorting parameters
         valid_sort_fields = ['entry_date', 'odometer', 'total_amount', 'created_at']
         if sort_by in valid_sort_fields:
             if sort_order == 'desc':
-                return [f'-{sort_by}']
+                # When sorting by custom field, add secondary sort by odometer desc
+                return [f'-{sort_by}', '-odometer']
             else:
-                return [sort_by]
-        
-        # Default sorting
-        return ['-entry_date']
+                # For ascending, use ascending order for both
+                return [sort_by, 'odometer']
+
+        # Default sorting: date desc, then odometer desc (for entries on same day)
+        return ['-entry_date', '-odometer']
 
 
 class VehiclePagination(PageNumberPagination):
@@ -129,6 +131,35 @@ class VehicleViewSet(viewsets.ModelViewSet):
         When creating a vehicle, automatically bind it to the current user.
         """
         serializer.save(user=self.request.user)
+
+    @transaction.atomic
+    def perform_update(self, serializer):
+        """
+        When updating vehicle:
+        1. Check if initial_odometer was changed
+        2. Save changes
+        3. If initial_odometer changed, recalculate all metrics for vehicle entries
+        4. Invalidate statistics cache
+        """
+        # Get old initial_odometer value before update
+        old_initial_odometer = serializer.instance.initial_odometer
+
+        # Save updated vehicle
+        vehicle = serializer.save()
+
+        # If initial_odometer changed, recalculate all metrics for this vehicle
+        if vehicle.initial_odometer != old_initial_odometer:
+            FuelEntryMetricsService.recalculate_all_metrics_for_vehicle(vehicle.id)
+
+            # Invalidate statistics cache for this user
+            self._invalidate_statistics_cache(vehicle.user_id)
+
+    def _invalidate_statistics_cache(self, user_id: int):
+        """
+        Invalidates statistics cache for user by updating version key.
+        This makes all old cache entries invalid.
+        """
+        cache.set(f'stats_version_user_{user_id}', timezone.now().timestamp())
 
 
 @extend_schema_view(

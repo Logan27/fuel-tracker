@@ -91,7 +91,7 @@ apiClient.interceptors.response.use(
     error.message = parsedError.message;
 
     // Add parsed error details for debugging
-    (error as any).parsedError = parsedError;
+    (error as AppAxiosError).parsedError = parsedError;
 
     return Promise.reject(error);
   }

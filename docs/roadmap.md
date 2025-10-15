@@ -219,6 +219,8 @@ This document describes the step-by-step development plan for the Fuel Tracker M
 ## Phase 2: Polish & UX Enhancements 🎨
 
 ### 2.1. Error Handling & Feedback
+- [x] Fix: Duplicate close button in EntryDetails modal
+- [x] Fix: Calculate metrics for the first fuel entry
 - [ ] Centralized error handler for API
 - [ ] Toast notifications (success, error, warning)
 - [ ] Inline form errors with clear messages
@@ -248,6 +250,13 @@ This document describes the step-by-step development plan for the Fuel Tracker M
 - [x] Focus indicators
 - [x] Screen reader testing
 - [x] Color contrast check
+
+### 2.6. UI Consistency
+- [x] Fix: Unify header on all pages (Entry Form)
+
+### 2.7. Bug Fixes & Enhancements
+- [x] Fix: Pressing 'Add Entry' button logs out the user
+- [x] Feat: Aggregate dashboard graphs by day
 
 ---
 

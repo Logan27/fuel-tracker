@@ -17,10 +17,7 @@ export const vehicleSchema = z.object({
     .min(1900, 'Year must be 1900 or later')
     .max(new Date().getFullYear() + 1, `Year cannot be in the future`)
     .nullable(),
-  initial_odometer: z
-    .union([z.number(), z.string()])
-    .transform((val) => (typeof val === 'string' ? parseInt(val, 10) || 0 : val))
-    .pipe(z.number().int().nonnegative('Initial odometer cannot be negative')),
+  initial_odometer: z.coerce.number().int().nonnegative('Initial odometer cannot be negative').default(0),
   fuel_type: z.string().max(50, 'Fuel type must be 50 characters or less').optional(),
   is_active: z.boolean().default(true),
 });
@@ -38,6 +35,7 @@ export const defaultVehicleValues: VehicleFormData = {
   make: '',
   model: '',
   year: null,
+  initial_odometer: 0,
   fuel_type: '',
   is_active: true,
 };

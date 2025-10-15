@@ -71,11 +71,16 @@ class RequestLoggingMiddleware(MiddlewareMixin):
         """
         correlation_id = getattr(request, 'correlation_id', 'N/A')
         user_id = request.user.id if request.user.is_authenticated else 'anonymous'
-        
+
+        # Debug: log sessionid cookie presence
+        has_sessionid = 'sessionid' in request.COOKIES
+        sessionid_value = request.COOKIES.get('sessionid', '')[:10] if has_sessionid else 'N/A'
+
         logger.info(
-            f"[{correlation_id}] Request: {request.method} {request.path} | User: {user_id}"
+            f"[{correlation_id}] Request: {request.method} {request.path} | User: {user_id} | "
+            f"Session: {sessionid_value}{'...' if has_sessionid else ''}"
         )
-        
+
         return None
     
     def process_response(self, request, response):

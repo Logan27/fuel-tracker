@@ -48,15 +48,16 @@ class FuelEntryMetricsServiceTestCase(TestCase):
         )
         
         FuelEntryMetricsService.calculate_metrics(entry)
-        
+
         # unit_price should be calculated
         self.assertIsNotNone(entry.unit_price)
         self.assertEqual(entry.unit_price, Decimal('55.00'))  # 2750 / 50
-        
-        # Other metrics should be None for baseline
-        self.assertIsNone(entry.distance_since_last)
-        self.assertIsNone(entry.consumption_l_100km)
-        self.assertIsNone(entry.cost_per_km)
+
+        # NEW LOGIC: First entry calculates metrics from initial_odometer
+        # distance_since_last = 10000 - 0 (initial_odometer) = 10000
+        self.assertEqual(entry.distance_since_last, 10000)
+        self.assertIsNotNone(entry.consumption_l_100km)
+        self.assertIsNotNone(entry.cost_per_km)
     
     def test_calculate_metrics_second_entry(self):
         """Test metrics calculation for second entry"""
@@ -284,13 +285,14 @@ class FuelEntryMetricsServiceTestCase(TestCase):
         
         # Recalculate all metrics
         FuelEntryMetricsService.recalculate_all_metrics_for_vehicle(self.vehicle.id)
-        
+
         # Check that metrics are calculated correctly
         entries = FuelEntry.objects.filter(vehicle=self.vehicle).order_by('entry_date', 'odometer')
-        
-        # First entry is baseline
-        self.assertIsNone(entries[0].distance_since_last)
-        
+
+        # NEW LOGIC: First entry now has metrics calculated from initial_odometer
+        # distance_since_last = 10000 - 0 (initial_odometer) = 10000
+        self.assertEqual(entries[0].distance_since_last, 10000)
+
         # Others should have calculated metrics
         for i in range(1, len(entries)):
             self.assertIsNotNone(entries[i].distance_since_last)
