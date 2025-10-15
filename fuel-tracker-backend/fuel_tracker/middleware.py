@@ -1,5 +1,5 @@
 """
-Middleware для трекинга запросов и централизованного логирования.
+Middleware for request tracking and centralized logging.
 """
 import uuid
 import logging
@@ -11,40 +11,40 @@ logger = logging.getLogger(__name__)
 
 class CorrelationIdMiddleware(MiddlewareMixin):
     """
-    Middleware для добавления correlation_id к каждому запросу.
+    Middleware for adding correlation_id to each request.
     
-    Correlation ID позволяет отслеживать один запрос через все логи
-    в распределённой системе.
+    Correlation ID allows tracking one request through all logs
+    in distributed system.
     
-    Использование:
-    - Генерирует уникальный UUID для каждого запроса
-    - Добавляет correlation_id в заголовок ответа (X-Correlation-ID)
-    - Добавляет correlation_id в локальный контекст логирования
+    Usage:
+    - Generates unique UUID for each request
+    - Adds correlation_id to response header (X-Correlation-ID)
+    - Adds correlation_id to local logging context
     """
     
     def process_request(self, request):
         """
-        Генерирует correlation_id для входящего запроса.
+        Generate correlation_id for incoming request.
         """
-        # Используем existing correlation_id из заголовка или генерируем новый
+        # Use existing correlation_id from header or generate new one
         correlation_id = request.headers.get('X-Correlation-ID', str(uuid.uuid4()))
         
-        # Сохраняем в request для использования в views
+        # Save in request for use in views
         request.correlation_id = correlation_id
         
-        # Сохраняем время начала обработки запроса
+        # Save request processing start time
         request.start_time = time.time()
         
         return None
     
     def process_response(self, request, response):
         """
-        Добавляет correlation_id в заголовки ответа.
+        Add correlation_id to response headers.
         """
         if hasattr(request, 'correlation_id'):
             response['X-Correlation-ID'] = request.correlation_id
             
-            # Вычисляем время обработки запроса
+            # Calculate request processing time
             if hasattr(request, 'start_time'):
                 duration = time.time() - request.start_time
                 response['X-Response-Time'] = f"{duration:.3f}s"
@@ -54,20 +54,20 @@ class CorrelationIdMiddleware(MiddlewareMixin):
 
 class RequestLoggingMiddleware(MiddlewareMixin):
     """
-    Middleware для логирования всех HTTP запросов.
+    Middleware for logging all HTTP requests.
     
-    Логирует:
-    - Метод и путь запроса
-    - Статус код ответа
-    - Время обработки
+    Logs:
+    - Request method and path
+    - Response status code
+    - Processing time
     - Correlation ID
-    - User ID (если авторизован)
+    - User ID (if authenticated)
     """
     
     def process_request(self, request):
         """
-        Логирует входящий запрос.
-        Note: Request body не логируется для защиты sensitive data (passwords, tokens).
+        Log incoming request.
+        Note: Request body is not logged to protect sensitive data (passwords, tokens).
         """
         correlation_id = getattr(request, 'correlation_id', 'N/A')
         user_id = request.user.id if request.user.is_authenticated else 'anonymous'
@@ -80,13 +80,13 @@ class RequestLoggingMiddleware(MiddlewareMixin):
     
     def process_response(self, request, response):
         """
-        Логирует ответ на запрос.
+        Log request response.
         """
         correlation_id = getattr(request, 'correlation_id', 'N/A')
         user_id = request.user.id if request.user.is_authenticated else 'anonymous'
         duration = time.time() - request.start_time if hasattr(request, 'start_time') else 0
         
-        # Определяем уровень логирования по статусу
+        # Determine logging level by status
         if response.status_code >= 500:
             log_level = logging.ERROR
         elif response.status_code >= 400:
@@ -104,7 +104,7 @@ class RequestLoggingMiddleware(MiddlewareMixin):
     
     def process_exception(self, request, exception):
         """
-        Логирует необработанные исключения.
+        Log unhandled exceptions.
         """
         correlation_id = getattr(request, 'correlation_id', 'N/A')
         user_id = request.user.id if request.user.is_authenticated else 'anonymous'
@@ -119,21 +119,21 @@ class RequestLoggingMiddleware(MiddlewareMixin):
 
 class SecurityEventMiddleware(MiddlewareMixin):
     """
-    Middleware для логирования событий безопасности.
+    Middleware for logging security events.
     
-    События:
-    - Неудачные попытки входа (401/403)
-    - Попытки доступа к чужим данным
-    - Подозрительная активность
+    Events:
+    - Failed sign in attempts (401/403)
+    - Attempts to access other users data
+    - Suspicious activity
     """
     
     def process_response(self, request, response):
         """
-        Логирует события безопасности на основе статуса ответа.
+        Log security events based on response status.
         """
         correlation_id = getattr(request, 'correlation_id', 'N/A')
         
-        # Логируем неудачные попытки аутентификации/авторизации
+        # Log failed authentication/authorization attempts
         if response.status_code in [401, 403]:
             user_id = request.user.id if request.user.is_authenticated else 'anonymous'
             ip_address = self._get_client_ip(request)
@@ -151,7 +151,7 @@ class SecurityEventMiddleware(MiddlewareMixin):
     
     def _get_client_ip(self, request):
         """
-        Извлекает IP адрес клиента из запроса.
+        Extract client IP address from request.
         """
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:

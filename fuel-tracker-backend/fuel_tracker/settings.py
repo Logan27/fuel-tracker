@@ -40,9 +40,9 @@ if DEBUG:
 # ============================================================================
 # Production Security Validation
 # ============================================================================
-# Проверяем критические настройки безопасности в production
+# Check critical security settings in production
 if not DEBUG:
-    # Проверка SECRET_KEY
+    # Check SECRET_KEY
     if not SECRET_KEY or len(SECRET_KEY) < 50:
         raise ValueError(
             "CRITICAL SECURITY ERROR: SECRET_KEY must be set and at least 50 characters long in production. "
@@ -55,14 +55,14 @@ if not DEBUG:
             "Generate a new SECRET_KEY using: python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'"
         )
     
-    # Проверка ALLOWED_HOSTS
+    # Check ALLOWED_HOSTS
     if not ALLOWED_HOSTS or ALLOWED_HOSTS == ['*']:
         raise ValueError(
             "CRITICAL SECURITY ERROR: ALLOWED_HOSTS must be explicitly set in production. "
             "Set ALLOWED_HOSTS in .env file to specific domains (e.g., 'example.com,www.example.com')."
         )
     
-    # Проверка CORS_ALLOWED_ORIGINS
+    # Check CORS_ALLOWED_ORIGINS
     cors_origins_str = config('CORS_ALLOWED_ORIGINS', default='')
     if not cors_origins_str:
         print(
@@ -171,7 +171,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
         'OPTIONS': {
-            'min_length': 8,  # Минимум 8 символов (по умолчанию 8, оставляем явно)
+            'min_length': 8,  # Minimum 8 characters (default 8, keep explicit)
         }
     },
     {
@@ -210,7 +210,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Set CORS_ALLOWED_ORIGINS environment variable with comma-separated list of allowed origins
 # Example: CORS_ALLOWED_ORIGINS=https://app.example.com,https://www.example.com
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://localhost:8000').split(',')
-CORS_ALLOW_CREDENTIALS = True  # Разрешить cookies для auth
+CORS_ALLOW_CREDENTIALS = True  # Allow cookies for auth
 
 # CSRF Trusted Origins
 # Django 4.0+ requires explicit CSRF_TRUSTED_ORIGINS for cross-origin requests
@@ -235,7 +235,7 @@ if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
     CORS_ALLOW_ALL_ORIGINS = False
-    # В production CORS_ALLOWED_ORIGINS должен быть строго whitelist
+    # In production CORS_ALLOWED_ORIGINS should be strict whitelist
     if CORS_ALLOWED_ORIGINS == ['http://localhost:3000', 'http://localhost:8000']:
         print(
             "WARNING: Using default CORS origins in production mode. "
@@ -252,9 +252,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-    # Кастомный обработчик исключений для стандартизированных ответов
+    # Custom exception handler for standardized responses
     'EXCEPTION_HANDLER': 'fuel_tracker.exceptions.custom_exception_handler',
-    # Не устанавливаем глобальную пагинацию, она указана в каждом ViewSet по необходимости
+    # Do not set global pagination, it is specified in each ViewSet as needed
     'PAGE_SIZE': 25,
     # Rate Limiting / Throttling
     'DEFAULT_THROTTLE_CLASSES': [],  # Applied per-view for flexibility
@@ -271,16 +271,16 @@ REST_FRAMEWORK = {
 
 # Session Security
 SESSION_COOKIE_AGE = 3600  # 1 hour
-SESSION_SAVE_EVERY_REQUEST = True  # Обновлять session на каждом запросе
-SESSION_COOKIE_HTTPONLY = True  # Недоступно для JavaScript
-SESSION_COOKIE_SAMESITE = 'Lax'  # Защита от CSRF (Lax для auth endpoints)
+SESSION_SAVE_EVERY_REQUEST = True  # Update session on every request
+SESSION_COOKIE_HTTPONLY = True  # Not accessible to JavaScript
+SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection (Lax for auth endpoints)
 
 if not DEBUG:
     # Production-only security settings
-    SESSION_COOKIE_SECURE = True  # Только HTTPS
-    CSRF_COOKIE_SECURE = True  # Только HTTPS
+    SESSION_COOKIE_SECURE = True  # HTTPS only
+    CSRF_COOKIE_SECURE = True  # HTTPS only
     SECURE_SSL_REDIRECT = True  # Redirect HTTP to HTTPS
-    SECURE_HSTS_SECONDS = 31536000  # 1 год
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_BROWSER_XSS_FILTER = True
@@ -292,13 +292,13 @@ else:
     CSRF_COOKIE_SECURE = False
 
 # CSRF Security
-CSRF_COOKIE_HTTPONLY = False  # Нужно для чтения JS на frontend
+CSRF_COOKIE_HTTPONLY = False  # Needed for JS reading on frontend
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_USE_SESSIONS = False
 
-# Content Security Policy (для защиты от XSS)
+# Content Security Policy (for XSS protection)
 if not DEBUG:
-    # В production можно добавить django-csp middleware
+    # In production can add django-csp middleware
     pass
 
 SPECTACULAR_SETTINGS = {
@@ -335,7 +335,7 @@ SPECTACULAR_SETTINGS = {
     'POSTPROCESSING_HOOKS': [],
 }
 
-# Referrer Policy для защиты от утечки информации
+# Referrer Policy for information leakage protection
 if not DEBUG:
     SECURE_REFERRER_POLICY = 'same-origin'
 

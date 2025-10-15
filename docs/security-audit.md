@@ -10,34 +10,34 @@
 
 ## Executive Summary
 
-Проведён комплексный аудит безопасности приложения Fuel Tracker. Приложение демонстрирует **хороший уровень защиты** с несколькими критическими областями, требующими внимания перед production deployment.
+A comprehensive security audit of the Fuel Tracker application was conducted. The application demonstrates a **good level of security** with several critical areas requiring attention before production deployment.
 
-**Общий рейтинг безопасности:** 7.5/10
+**Overall Security Rating:** 7.5/10
 
-**Критические уязвимости:** 1  
-**Высокий приоритет:** 3  
-**Средний приоритет:** 5  
-**Низкий приоритет:** 3
+**Critical Vulnerabilities:** 1  
+**High Priority:** 3  
+**Medium Priority:** 5  
+**Low Priority:** 3
 
 ---
 
 ## 1. Input Validation Vulnerabilities
 
-### 1.1 XSS через текстовые поля
+### 1.1 XSS via text fields
 
 **ID:** SEC-001  
-**Приоритет:** 🔴 КРИТИЧЕСКИЙ  
-**Статус:** ✅ FIXED  
+**Priority:** 🔴 CRITICAL  
+**Status:** ✅ FIXED  
 **OWASP:** A03:2021 - Injection
 
-**Описание:**  
-Текстовые поля (`station_name`, `fuel_brand`, `fuel_grade`, `notes`, `vehicle.name`) не имеют должной санитизации на backend. Django автоматически экранирует вывод в шаблонах, но React может рендерить данные через `dangerouslySetInnerHTML` или подобные механизмы.
+**Description:**  
+Text fields (`station_name`, `fuel_brand`, `fuel_grade`, `notes`, `vehicle.name`) do not have proper sanitization on the backend. Django automatically escapes output in templates, but React can render data via `dangerouslySetInnerHTML` or similar mechanisms.
 
-**Уязвимые endpoints:**
-- `POST /api/v1/vehicles` - поле `name`
-- `POST /api/v1/fuel-entries` - поля `station_name`, `fuel_brand`, `fuel_grade`, `notes`
-- `PATCH /api/v1/vehicles/{id}` - поле `name`
-- `PATCH /api/v1/fuel-entries/{id}` - текстовые поля
+**Vulnerable endpoints:**
+- `POST /api/v1/vehicles` - `name` field
+- `POST /api/v1/fuel-entries` - `station_name`, `fuel_brand`, `fuel_grade`, `notes` fields
+- `PATCH /api/v1/vehicles/{id}` - `name` field
+- `PATCH /api/v1/fuel-entries/{id}` - text fields
 
 **Proof of Concept:**
 ```json
@@ -49,61 +49,61 @@ POST /api/v1/vehicles
 ```
 
 **Impact:**
-- Stored XSS атаки
-- Кража session cookies
-- Phishing атаки на других пользователей
+- Stored XSS attacks
+- Theft of session cookies
+- Phishing attacks on other users
 
-**Рекомендации:**
-1. ✅ Добавить валидацию на уровне serializer'ов:
+**Recommendations:**
+1. ✅ Add validation at the serializer level:
 ```python
 import bleach
 from django.utils.html import escape
 
 def validate_name(self, value):
-    # Удаляем все HTML теги
+    # Remove all HTML tags
     cleaned = bleach.clean(value, tags=[], strip=True)
     return cleaned.strip()
 ```
 
-2. ✅ Установить Content-Security-Policy headers:
+2. ✅ Set Content-Security-Policy headers:
 ```python
 # settings.py
 SECURE_CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self'"
 ```
 
-3. ✅ На frontend использовать только text content (не innerHTML):
+3. ✅ On the frontend, use only text content (not innerHTML):
 ```typescript
-// React автоматически экранирует, но проверить:
+// React automatically escapes, but check:
 <div>{vehicle.name}</div>  // ✅ Safe
 <div dangerouslySetInnerHTML={{__html: vehicle.name}} />  // ❌ Dangerous
 ```
 
 ---
 
-### 1.2 SQL Injection через query parameters
+### 1.2 SQL Injection via query parameters
 
 **ID:** SEC-002  
-**Приоритет:** 🟢 НИЗКИЙ (защищено Django ORM)  
-**Статус:** ✅ PROTECTED  
+**Priority:** 🟢 LOW (protected by Django ORM)  
+**Status:** ✅ PROTECTED  
 **OWASP:** A03:2021 - Injection
 
-**Описание:**  
-Все query parameters передаются через Django ORM, который автоматически параметризует запросы. Прямые SQL запросы не используются.
+**Description:**  
+All query parameters are passed through the Django ORM, which automatically parameterizes queries. Direct SQL queries are not used.
 
-**Проверенные endpoints:**
+**Verified endpoints:**
 - `GET /api/v1/fuel-entries?vehicle=1&date_after=2024-01-01`
 - `GET /api/v1/fuel-entries?fuel_brand=Shell&station_name=BP`
 
-**Защита:**
+**Protection:**
 ```python
-# Параметризованные запросы через ORM
+# Parameterized queries via ORM
 queryset = queryset.filter(fuel_brand__icontains=fuel_brand)  # ✅ Safe
 ```
 
-**Рекомендации:**
-- ✅ Продолжать использовать Django ORM
-- ❌ Избегать `.raw()` и `.extra()` методов
-- ✅ Если нужен raw SQL - использовать параметризацию:
+**Recommendations:**
+- ✅ Continue to use the Django ORM
+- ❌ Avoid `.raw()` and `.extra()` methods
+- ✅ If raw SQL is needed - use parameterization:
 ```python
 # ❌ NEVER DO THIS
 cursor.execute(f"SELECT * FROM users WHERE email = '{email}'")
@@ -114,22 +114,22 @@ cursor.execute("SELECT * FROM users WHERE email = %s", [email])
 
 ---
 
-### 1.3 NoSQL Injection через Redis cache keys
+### 1.3 NoSQL Injection via Redis cache keys
 
 **ID:** SEC-003  
-**Приоритет:** 🟡 СРЕДНИЙ  
-**Статус:** ✅ FIXED  
+**Priority:** 🟡 MEDIUM  
+**Status:** ✅ FIXED  
 **OWASP:** A03:2021 - Injection
 
-**Описание:**  
-Cache keys формируются с user-controlled данными без валидации:
+**Description:**  
+Cache keys are formed with user-controlled data without validation:
 
 ```python
 # views.py:473
 cache_key = f'dashboard_stats_user{user_id}_vehicle{vehicle_id}_period{period_type}_after{date_after_str}_before{date_before_str}'
 ```
 
-Если `date_after_str` содержит спецсимволы Redis, возможна cache poisoning атака.
+If `date_after_str` contains special Redis characters, a cache poisoning attack is possible.
 
 **Proof of Concept:**
 ```
@@ -138,47 +138,47 @@ GET /api/v1/statistics/dashboard?period=custom&date_after=2024-01-01*&date_befor
 
 **Impact:**
 - Cache pollution
-- Потенциальный DoS через переполнение cache
+- Potential DoS through cache overflow
 
-**Рекомендации:**
-1. ✅ Валидировать и санитизировать все части cache key:
+**Recommendations:**
+1. ✅ Validate and sanitize all parts of the cache key:
 ```python
 import hashlib
 
 def safe_cache_key(user_id, vehicle_id, period_type, date_after_str, date_before_str):
-    # Используем hash для user input
+    # Use a hash for user input
     input_hash = hashlib.md5(
         f"{vehicle_id}_{period_type}_{date_after_str}_{date_before_str}".encode()
     ).hexdigest()
     return f'dashboard_stats_user{user_id}_{input_hash}'
 ```
 
-2. ✅ Ограничить длину cache keys (< 250 символов)
+2. ✅ Limit the length of cache keys (< 250 characters)
 
 ---
 
-### 1.4 Отсутствие максимальной длины для текстовых полей
+### 1.4 Lack of maximum length for text fields
 
 **ID:** SEC-004  
-**Приоритет:** 🟡 СРЕДНИЙ  
-**Статус:** ✅ FIXED  
+**Priority:** 🟡 MEDIUM  
+**Status:** ✅ FIXED  
 **OWASP:** A01:2021 - Broken Access Control / DoS
 
-**Описание:**  
-Поле `notes` в `FuelEntry` имеет `max_length=500` на уровне модели, но нет валидации на serializer level для защиты от очень длинных строк в других полях.
+**Description:**  
+The `notes` field in `FuelEntry` has a `max_length=500` at the model level, but there is no validation at the serializer level to protect against very long strings in other fields.
 
-**Уязвимые поля:**
+**Vulnerable fields:**
 - `vehicle.name` - max_length=100
 - `station_name` - max_length=100
 - `fuel_brand` - max_length=50
 - `fuel_grade` - max_length=20
 
 **Impact:**
-- Потенциальный DoS через огромные payload'ы
-- Переполнение базы данных
+- Potential DoS through huge payloads
+- Database overflow
 
-**Рекомендации:**
-✅ Добавить явную валидацию в serializers:
+**Recommendations:**
+✅ Add explicit validation in serializers:
 ```python
 class FuelEntrySerializer(serializers.ModelSerializer):
     station_name = serializers.CharField(max_length=100, trim_whitespace=True)
@@ -191,15 +191,15 @@ class FuelEntrySerializer(serializers.ModelSerializer):
 
 ## 2. Authentication & Authorization Vulnerabilities
 
-### 2.1 CSRF Protection отключена для auth endpoints
+### 2.1 CSRF Protection disabled for auth endpoints
 
 **ID:** SEC-005  
-**Приоритет:** 🔴 ВЫСОКИЙ  
-**Статус:** ✅ FIXED  
+**Priority:** 🔴 HIGH  
+**Status:** ✅ FIXED  
 **OWASP:** A01:2021 - Broken Access Control
 
-**Описание:**  
-Auth endpoints используют `@csrf_exempt` decorator:
+**Description:**  
+Auth endpoints use the `@csrf_exempt` decorator:
 
 ```python
 # users/views.py:41, 78, 102
@@ -208,31 +208,31 @@ class SignUpView(generics.CreateAPIView):
     ...
 ```
 
-Это делает endpoints уязвимыми к CSRF атакам.
+This makes the endpoints vulnerable to CSRF attacks.
 
-**Уязвимые endpoints:**
+**Vulnerable endpoints:**
 - `POST /api/v1/auth/signup`
 - `POST /api/v1/auth/signin`
 - `POST /api/v1/auth/signout`
 
 **Impact:**
-- CSRF атаки на регистрацию/вход
-- Несанкционированный logout пользователей
+- CSRF attacks on registration/login
+- Unauthorized logout of users
 
-**Рекомендации:**
-1. 🔴 **УДАЛИТЬ** `@csrf_exempt` из всех auth endpoints
-2. ✅ Настроить CSRF токены для frontend:
+**Recommendations:**
+1. 🔴 **REMOVE** `@csrf_exempt` from all auth endpoints
+2. ✅ Configure CSRF tokens for the frontend:
 ```python
 # settings.py
-CSRF_COOKIE_HTTPONLY = False  # Чтобы JS мог читать
+CSRF_COOKIE_HTTPONLY = False  # So JS can read it
 CSRF_COOKIE_SAMESITE = 'Strict'
 CSRF_USE_SESSIONS = False
-CSRF_COOKIE_SECURE = True  # В production
+CSRF_COOKIE_SECURE = True  # In production
 ```
 
-3. ✅ На frontend получать CSRF token:
+3. ✅ On the frontend, get the CSRF token:
 ```typescript
-// Перед auth запросом
+// Before an auth request
 const csrfToken = document.cookie
   .split('; ')
   .find(row => row.startsWith('csrftoken='))
@@ -243,19 +243,19 @@ axios.post('/api/v1/auth/signin', data, {
 });
 ```
 
-**Status Update:** Требуется НЕМЕДЛЕННОЕ исправление для production.
+**Status Update:** Requires IMMEDIATE fix for production.
 
 ---
 
-### 2.2 Rate Limiting только на auth endpoints
+### 2.2 Rate Limiting only on auth endpoints
 
 **ID:** SEC-006  
-**Приоритет:** 🟡 СРЕДНИЙ  
-**Статус:** ✅ CONFIGURED  
+**Priority:** 🟡 MEDIUM  
+**Status:** ✅ CONFIGURED  
 **OWASP:** A07:2021 - Identification and Authentication Failures
 
-**Описание:**  
-Rate limiting (5 req/min) применяется только к auth endpoints. API endpoints не защищены от abuse.
+**Description:**  
+Rate limiting (5 req/min) is applied only to auth endpoints. API endpoints are not protected from abuse.
 
 ```python
 # settings.py
@@ -266,15 +266,15 @@ Rate limiting (5 req/min) применяется только к auth endpoints.
 }
 ```
 
-Throttle classes не применяются к `VehicleViewSet`, `FuelEntryViewSet`, statistics endpoints.
+Throttle classes are not applied to `VehicleViewSet`, `FuelEntryViewSet`, statistics endpoints.
 
 **Impact:**
 - API abuse / scraping
-- DoS атаки на создание entries
-- Переполнение базы данных
+- DoS attacks on entry creation
+- Database overflow
 
-**Рекомендации:**
-✅ Добавить throttling к API endpoints:
+**Recommendations:**
+✅ Add throttling to API endpoints:
 ```python
 from rest_framework.throttling import UserRateThrottle
 
@@ -292,15 +292,15 @@ class FuelEntryViewSet(viewsets.ModelViewSet):
 
 ---
 
-### 2.3 Отсутствие защиты от password brute force
+### 2.3 Lack of protection against password brute force
 
 **ID:** SEC-007  
-**Приоритет:** 🔴 ВЫСОКИЙ  
-**Статус:** ✅ FIXED  
+**Priority:** 🔴 HIGH  
+**Status:** ✅ FIXED  
 **OWASP:** A07:2021 - Identification and Authentication Failures
 
-**Описание:**  
-Rate limiting 5 req/min недостаточен для защиты от distributed brute force атак. Нет механизма temporary account lockout после N неудачных попыток.
+**Description:**  
+A rate limit of 5 req/min is insufficient to protect against distributed brute force attacks. There is no mechanism for temporary account lockout after N failed attempts.
 
 **Current Protection:**
 ```python
@@ -312,8 +312,8 @@ class AuthenticationThrottle(AnonRateThrottle):
 - Distributed brute force attacks
 - Account takeover
 
-**Рекомендации:**
-1. ✅ Добавить account lockout механизм:
+**Recommendations:**
+1. ✅ Add an account lockout mechanism:
 ```python
 # users/models.py
 class User(AbstractUser):
@@ -327,7 +327,7 @@ def post(self, request, *args, **kwargs):
     if serializer.is_valid():
         user = serializer.validated_data['user']
         
-        # Проверка lockout
+        # Check for lockout
         if user.locked_until and user.locked_until > timezone.now():
             return Response({
                 'errors': [{'code': 'account_locked', 'detail': 'Account temporarily locked'}]
@@ -357,19 +357,19 @@ def post(self, request, *args, **kwargs):
         return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
 ```
 
-2. ✅ Логировать все failed login attempts в security.log
+2. ✅ Log all failed login attempts in security.log
 
 ---
 
-### 2.4 Слабая валидация паролей
+### 2.4 Weak password validation
 
 **ID:** SEC-008  
-**Приоритет:** 🟢 НИЗКИЙ (частично защищено)  
-**Статус:** ✅ PARTIALLY PROTECTED  
+**Priority:** 🟢 LOW (partially protected)  
+**Status:** ✅ PARTIALLY PROTECTED  
 **OWASP:** A07:2021 - Identification and Authentication Failures
 
-**Описание:**  
-Используется стандартная Django password validation:
+**Description:**  
+Standard Django password validation is used:
 
 ```python
 # serializers.py:43-46
@@ -379,10 +379,10 @@ def validate(self, data):
     return super().validate(data)
 ```
 
-Django по умолчанию проверяет: минимальная длина (8), не слишком простой, не похож на user attributes.
+By default, Django checks for: minimum length (8), not too simple, not similar to user attributes.
 
-**Рекомендации:**
-✅ Усилить требования к паролям в production:
+**Recommendations:**
+✅ Strengthen password requirements in production:
 ```python
 # settings.py
 AUTH_PASSWORD_VALIDATORS = [
@@ -395,37 +395,37 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ---
 
-### 2.5 Session Hijacking риски
+### 2.5 Session Hijacking risks
 
 **ID:** SEC-009  
-**Приоритет:** 🟡 СРЕДНИЙ  
-**Статус:** ✅ FIXED  
+**Priority:** 🟡 MEDIUM  
+**Status:** ✅ FIXED  
 **OWASP:** A07:2021 - Identification and Authentication Failures
 
-**Описание:**  
-Session cookies не имеют достаточной защиты в текущей конфигурации.
+**Description:**  
+Session cookies do not have sufficient protection in the current configuration.
 
-**Текущая конфигурация:**
+**Current configuration:**
 ```python
-# settings.py - необходимо проверить/добавить
-SESSION_COOKIE_SECURE = ?  # Должно быть True в production
-SESSION_COOKIE_HTTPONLY = ?  # Должно быть True
-SESSION_COOKIE_SAMESITE = ?  # Должно быть 'Strict' или 'Lax'
+# settings.py - needs to be checked/added
+SESSION_COOKIE_SECURE = ?  # Should be True in production
+SESSION_COOKIE_HTTPONLY = ?  # Should be True
+SESSION_COOKIE_SAMESITE = ?  # Should be 'Strict' or 'Lax'
 ```
 
 **Impact:**
-- Session hijacking через XSS
-- Session hijacking через MITM (если нет HTTPS)
+- Session hijacking via XSS
+- Session hijacking via MITM (if no HTTPS)
 
-**Рекомендации:**
-✅ Добавить в `settings.py` для production:
+**Recommendations:**
+✅ Add to `settings.py` for production:
 ```python
 # Session Security
-SESSION_COOKIE_SECURE = True  # Только HTTPS
-SESSION_COOKIE_HTTPONLY = True  # Недоступно для JavaScript
-SESSION_COOKIE_SAMESITE = 'Strict'  # Защита от CSRF
+SESSION_COOKIE_SECURE = True  # HTTPS only
+SESSION_COOKIE_HTTPONLY = True  # Not accessible to JavaScript
+SESSION_COOKIE_SAMESITE = 'Strict'  # CSRF protection
 SESSION_COOKIE_AGE = 3600  # 1 hour
-SESSION_SAVE_EVERY_REQUEST = True  # Обновлять на каждом запросе
+SESSION_SAVE_EVERY_REQUEST = True  # Update on every request
 
 # CSRF Security
 CSRF_COOKIE_SECURE = True
@@ -440,14 +440,14 @@ CSRF_COOKIE_SAMESITE = 'Strict'
 ### 3.1 Row-Level Security
 
 **ID:** SEC-010  
-**Приоритет:** ✅ SECURE  
-**Статус:** ✅ IMPLEMENTED  
+**Priority:** ✅ SECURE  
+**Status:** ✅ IMPLEMENTED  
 **OWASP:** A01:2021 - Broken Access Control
 
-**Описание:**  
-Приложение **корректно** реализует row-level security. Все QuerySet'ы фильтруются по `user=request.user`.
+**Description:**  
+The application **correctly** implements row-level security. All QuerySets are filtered by `user=request.user`.
 
-**Проверенные endpoints:**
+**Verified endpoints:**
 ```python
 # api/views.py:96
 def get_queryset(self):
@@ -463,32 +463,32 @@ def get_queryset(self):
 permission_classes = [permissions.IsAuthenticated, IsOwner]
 ```
 
-**Verdict:** ✅ Изоляция данных реализована корректно.
+**Verdict:** ✅ Data isolation is implemented correctly.
 
 ---
 
 ### 3.2 IDOR Protection
 
 **ID:** SEC-011  
-**Приоритет:** ✅ SECURE  
-**Статус:** ✅ PROTECTED  
+**Priority:** ✅ SECURE  
+**Status:** ✅ PROTECTED  
 **OWASP:** A01:2021 - Broken Access Control
 
-**Описание:**  
-IDOR (Insecure Direct Object Reference) атаки **невозможны** благодаря:
-1. Фильтрация QuerySet по `user=request.user`
-2. `IsOwner` permission проверяет `obj.user == request.user`
+**Description:**  
+IDOR (Insecure Direct Object Reference) attacks are **not possible** due to:
+1. QuerySet filtering by `user=request.user`
+2. `IsOwner` permission checks `obj.user == request.user`
 
-**Тест:**
+**Test:**
 ```bash
-# User A пытается получить vehicle User B
+# User A tries to get vehicle of User B
 curl -H "Cookie: sessionid=USER_A_SESSION" \
   http://localhost:8000/api/v1/vehicles/999
 
-# Ответ: 404 Not Found (vehicle не принадлежит User A)
+# Response: 404 Not Found (vehicle does not belong to User A)
 ```
 
-**Verdict:** ✅ Защита от IDOR реализована корректно.
+**Verdict:** ✅ IDOR protection is implemented correctly.
 
 ---
 
@@ -497,58 +497,58 @@ curl -H "Cookie: sessionid=USER_A_SESSION" \
 ### 4.1 OS Command Injection
 
 **ID:** SEC-012  
-**Приоритет:** ✅ NOT APPLICABLE  
-**Статус:** ✅ NO RISK  
+**Priority:** ✅ NOT APPLICABLE  
+**Status:** ✅ NO RISK  
 **OWASP:** A03:2021 - Injection
 
-**Описание:**  
-Приложение **не выполняет** system commands. Нет использования `os.system()`, `subprocess`, `eval()`, `exec()`.
+**Description:**  
+The application **does not execute** system commands. There is no use of `os.system()`, `subprocess`, `eval()`, `exec()`.
 
-**Verdict:** ✅ Риска нет.
+**Verdict:** ✅ No risk.
 
 ---
 
 ### 4.2 Template Injection
 
 **ID:** SEC-013  
-**Приоритет:** ✅ NOT APPLICABLE  
-**Статус:** ✅ NO RISK  
+**Priority:** ✅ NOT APPLICABLE  
+**Status:** ✅ NO RISK  
 **OWASP:** A03:2021 - Injection
 
-**Описание:**  
-Приложение использует REST API без server-side template rendering. Django templates не используются для user-controlled content.
+**Description:**  
+The application uses a REST API without server-side template rendering. Django templates are not used for user-controlled content.
 
-**Verdict:** ✅ Риска нет.
+**Verdict:** ✅ No risk.
 
 ---
 
 ## 5. DoS Attacks & Resource Exhaustion
 
-### 5.1 Pagination отсутствует на некоторых endpoints
+### 5.1 Pagination is missing on some endpoints
 
 **ID:** SEC-014  
-**Приоритет:** 🟡 СРЕДНИЙ  
-**Статус:** ✅ FIXED  
+**Priority:** 🟡 MEDIUM  
+**Status:** ✅ FIXED  
 **OWASP:** A04:2021 - Insecure Design
 
-**Описание:**  
-- `FuelEntryViewSet` имеет pagination (CursorPagination, page_size=25) ✅
-- `VehicleViewSet` **НЕ имеет** pagination ⚠️
-- Statistics endpoints **НЕ имеют** pagination ⚠️
+**Description:**  
+- `FuelEntryViewSet` has pagination (CursorPagination, page_size=25) ✅
+- `VehicleViewSet` **does NOT have** pagination ⚠️
+- Statistics endpoints **do NOT have** pagination ⚠️
 
 **Impact:**
-- Memory exhaustion при большом количестве vehicles
-- DoS через запрос больших datasets
+- Memory exhaustion with a large number of vehicles
+- DoS through requests for large datasets
 
-**Рекомендации:**
-✅ Добавить pagination к VehicleViewSet:
+**Recommendations:**
+✅ Add pagination to VehicleViewSet:
 ```python
 class VehicleViewSet(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
     page_size = 50
 ```
 
-✅ Ограничить размер ответа statistics endpoints:
+✅ Limit the response size of statistics endpoints:
 ```python
 def dashboard_statistics(request):
     # Limit time_series points
@@ -558,17 +558,17 @@ def dashboard_statistics(request):
 
 ---
 
-### 5.2 Cache DoS через неограниченное кэширование
+### 5.2 Cache DoS via unlimited caching
 
 **ID:** SEC-015  
-**Приоритет:** 🟡 СРЕДНИЙ  
-**Статус:** ✅ FIXED  
+**Priority:** 🟡 MEDIUM  
+**Status:** ✅ FIXED  
 **OWASP:** A04:2021 - Insecure Design
 
-**Описание:**  
-Cache TTL установлен в 300 секунд (5 минут), но нет ограничения на количество unique cache keys на пользователя.
+**Description:**  
+Cache TTL is set to 300 seconds (5 minutes), but there is no limit on the number of unique cache keys per user.
 
-Атакующий может создать множество уникальных запросов:
+An attacker can create many unique requests:
 ```
 GET /api/v1/statistics/dashboard?period=custom&date_after=2024-01-01&date_before=2024-01-02
 GET /api/v1/statistics/dashboard?period=custom&date_after=2024-01-02&date_before=2024-01-03
@@ -579,14 +579,14 @@ GET /api/v1/statistics/dashboard?period=custom&date_after=2024-01-02&date_before
 - Redis memory exhaustion
 - Cache eviction for legitimate users
 
-**Рекомендации:**
-1. ✅ Установить Redis maxmemory policy:
+**Recommendations:**
+1. ✅ Set Redis maxmemory policy:
 ```redis
 maxmemory 256mb
 maxmemory-policy allkeys-lru
 ```
 
-2. ✅ Ограничить custom period range:
+2. ✅ Limit the custom period range:
 ```python
 def dashboard_statistics(request):
     if period_type == 'custom':
@@ -599,17 +599,17 @@ def dashboard_statistics(request):
 
 ---
 
-### 5.3 Нет защиты от slowloris атак
+### 5.3 No protection against slowloris attacks
 
 **ID:** SEC-016  
-**Приоритет:** 🟢 НИЗКИЙ (защищается на уровне web server)  
-**Статус:** ⚠️ REQUIRES WEB SERVER CONFIG  
+**Priority:** 🟢 LOW (protected at the web server level)  
+**Status:** ⚠️ REQUIRES WEB SERVER CONFIG  
 **OWASP:** A04:2021 - Insecure Design
 
-**Описание:**  
-Django dev server уязвим к slowloris атакам. В production должен использоваться Gunicorn + Nginx.
+**Description:**  
+The Django dev server is vulnerable to slowloris attacks. In production, Gunicorn + Nginx should be used.
 
-**Рекомендации:**
+**Recommendations:**
 ✅ Production deployment setup:
 ```yaml
 # docker-compose.yml (production)
@@ -646,24 +646,24 @@ http {
 
 ## 6. Data Leakage & Information Disclosure
 
-### 6.1 Sensitive data в error responses
+### 6.1 Sensitive data in error responses
 
 **ID:** SEC-017  
-**Приоритет:** 🟡 СРЕДНИЙ  
-**Статус:** ✅ FIXED (same as SEC-022)  
+**Priority:** 🟡 MEDIUM  
+**Status:** ✅ FIXED (same as SEC-022)  
 **OWASP:** A04:2021 - Insecure Design
 
-**Описание:**  
-При `DEBUG=True` Django возвращает detailed error pages с stack traces, environment variables, SQL queries.
+**Description:**  
+With `DEBUG=True`, Django returns detailed error pages with stack traces, environment variables, SQL queries.
 
 **Impact:**
-- Раскрытие структуры базы данных
-- Раскрытие file paths
-- Потенциальное раскрытие credentials
+- Disclosure of database structure
+- Disclosure of file paths
+- Potential disclosure of credentials
 
-**Рекомендации:**
-1. ✅ **ОБЯЗАТЕЛЬНО** установить `DEBUG=False` в production
-2. ✅ Настроить custom error handlers:
+**Recommendations:**
+1. ✅ **MANDATORY** set `DEBUG=False` in production
+2. ✅ Configure custom error handlers:
 ```python
 # settings.py
 DEBUG = False
@@ -674,32 +674,32 @@ handler404 = 'yourapp.views.custom_404'
 handler500 = 'yourapp.views.custom_500'
 ```
 
-3. ✅ Логировать errors, но не возвращать details клиенту
+3. ✅ Log errors, but do not return details to the client
 
 ---
 
-### 6.2 Timing attacks на user enumeration
+### 6.2 Timing attacks on user enumeration
 
 **ID:** SEC-018  
-**Приоритет:** 🟢 НИЗКИЙ  
-**Статус:** ✅ FIXED (timing attack mitigation)  
+**Priority:** 🟢 LOW  
+**Status:** ✅ FIXED (timing attack mitigation)  
 **OWASP:** A04:2021 - Insecure Design
 
-**Описание:**  
-SignIn endpoint позволяет определить существование email через timing:
-- Существующий email: проверка password hash (~100ms)
-- Несуществующий email: instant return (~1ms)
+**Description:**  
+The SignIn endpoint allows determining the existence of an email via timing:
+- Existing email: password hash check (~100ms)
+- Non-existing email: instant return (~1ms)
 
 ```python
 # users/backends.py:9
-user = UserModel.objects.get(email=username)  # Может вернуть DoesNotExist
+user = UserModel.objects.get(email=username)  # Can return DoesNotExist
 ```
 
 **Impact:**
-- User enumeration для targeted attacks
+- User enumeration for targeted attacks
 
-**Рекомендации:**
-✅ Добавить constant-time response:
+**Recommendations:**
+✅ Add constant-time response:
 ```python
 from django.contrib.auth.hashers import check_password
 
@@ -723,16 +723,16 @@ def authenticate(self, request, username=None, password=None, **kwargs):
 ### 7.1 Passwords
 
 **ID:** SEC-019  
-**Приоритет:** ✅ SECURE  
-**Статус:** ✅ PROTECTED  
+**Priority:** ✅ SECURE  
+**Status:** ✅ PROTECTED  
 
-**Описание:**  
-Пароли хэшируются через Django's `PBKDF2` algorithm (по умолчанию).
+**Description:**  
+Passwords are hashed using Django's `PBKDF2` algorithm (by default).
 
 ```python
 # users/serializers.py:50
 user = User.objects.create_user(
-    password=validated_data['password']  # Автоматически хэшируется
+    password=validated_data['password']  # Automatically hashed
 )
 ```
 
@@ -740,25 +740,25 @@ user = User.objects.create_user(
 
 ---
 
-### 7.2 Sensitive data в логах
+### 7.2 Sensitive data in logs
 
 **ID:** SEC-020  
-**Приоритет:** 🟡 СРЕДНИЙ  
-**Статус:** ✅ REVIEWED  
+**Priority:** 🟡 MEDIUM  
+**Status:** ✅ REVIEWED  
 **OWASP:** A09:2021 - Security Logging and Monitoring Failures
 
-**Описание:**  
-RequestLoggingMiddleware логирует все requests, но не фильтрует sensitive data.
+**Description:**  
+RequestLoggingMiddleware logs all requests but does not filter sensitive data.
 
 ```python
 # middleware.py:74
 logger.info(f"Request: {request.method} {request.path} | User: {user_id}")
 ```
 
-Если request содержит password в POST body, он может попасть в логи.
+If a request contains a password in the POST body, it may end up in the logs.
 
-**Рекомендации:**
-✅ Фильтровать sensitive fields:
+**Recommendations:**
+✅ Filter sensitive fields:
 ```python
 SENSITIVE_POST_PARAMETERS = ['password', 'token', 'secret']
 
@@ -774,14 +774,14 @@ def process_request(self, request):
 
 ## 8. Environment & Configuration
 
-### 8.1 .env файл защищён от git
+### 8.1 .env file is protected from git
 
 **ID:** SEC-021  
-**Приоритет:** ✅ SECURE  
-**Статус:** ✅ PROTECTED  
+**Priority:** ✅ SECURE  
+**Status:** ✅ PROTECTED  
 
-**Описание:**  
-`.gitignore` корректно исключает `.env` файлы:
+**Description:**  
+`.gitignore` correctly excludes `.env` files:
 
 ```gitignore
 # .gitignore:181-186
@@ -792,26 +792,26 @@ def process_request(self, request):
 .env.development
 ```
 
-**Verdict:** ✅ Credentials не попадут в git.
+**Verdict:** ✅ Credentials will not be committed to git.
 
 ---
 
 ### 8.2 DEBUG mode
 
 **ID:** SEC-022  
-**Приоритет:** 🔴 КРИТИЧЕСКИЙ  
-**Статус:** ✅ FIXED  
+**Priority:** 🔴 CRITICAL  
+**Status:** ✅ FIXED  
 **OWASP:** A05:2021 - Security Misconfiguration
 
-**Описание:**  
-`DEBUG` по умолчанию `False`, но должно быть **явно** установлено в production:
+**Description:**  
+`DEBUG` is `False` by default, but it must be **explicitly** set in production:
 
 ```python
 # settings.py:27
 DEBUG = config('DEBUG', default=False, cast=bool)
 ```
 
-**Рекомендации:**
+**Recommendations:**
 ✅ Production checklist:
 ```bash
 # .env.production
@@ -822,7 +822,7 @@ CSRF_COOKIE_SECURE=True
 SESSION_COOKIE_SECURE=True
 ```
 
-✅ Добавить validation при старте:
+✅ Add validation on startup:
 ```python
 # settings.py
 if not DEBUG:
@@ -834,18 +834,18 @@ if not DEBUG:
 
 ## 9. Dependency Vulnerabilities
 
-### 9.1 Проверка зависимостей
+### 9.1 Dependency check
 
 **ID:** SEC-023  
-**Приоритет:** 🟡 СРЕДНИЙ  
-**Статус:** ✅ DOCUMENTED (SECURITY.md)  
+**Priority:** 🟡 MEDIUM  
+**Status:** ✅ DOCUMENTED (SECURITY.md)  
 **OWASP:** A06:2021 - Vulnerable and Outdated Components
 
-**Описание:**  
-Необходимо регулярно проверять зависимости на известные уязвимости.
+**Description:**  
+Dependencies must be regularly checked for known vulnerabilities.
 
-**Рекомендации:**
-✅ Использовать автоматические инструменты:
+**Recommendations:**
+✅ Use automated tools:
 ```bash
 # Backend
 pip install safety
@@ -860,7 +860,7 @@ npm audit
 npm audit fix
 ```
 
-✅ Настроить GitHub Dependabot:
+✅ Configure GitHub Dependabot:
 ```yaml
 # .github/dependabot.yml
 version: 2
@@ -880,15 +880,15 @@ updates:
 
 ## 10. CORS Configuration
 
-### 10.1 CORS слишком permissive в development
+### 10.1 CORS is too permissive in development
 
 **ID:** SEC-024  
-**Приоритет:** 🟡 СРЕДНИЙ  
-**Статус:** ✅ CONFIGURED  
+**Priority:** 🟡 MEDIUM  
+**Status:** ✅ CONFIGURED  
 **OWASP:** A05:2021 - Security Misconfiguration
 
-**Описание:**  
-В development mode CORS разрешает **все** origins:
+**Description:**  
+In development mode, CORS allows **all** origins:
 
 ```python
 # settings.py:176-179
@@ -898,7 +898,7 @@ else:
     CORS_ALLOW_ALL_ORIGINS = False
 ```
 
-**Рекомендации:**
+**Recommendations:**
 ✅ Production configuration:
 ```python
 # settings.py
@@ -910,7 +910,7 @@ CORS_ALLOWED_ORIGINS = config(
 
 CORS_ALLOW_CREDENTIALS = True
 
-# Дополнительная защита
+# Additional protection
 CORS_ALLOW_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
 CORS_ALLOW_HEADERS = ['accept', 'accept-encoding', 'authorization', 'content-type', 'dnt', 'origin', 'user-agent', 'x-csrftoken', 'x-requested-with']
 ```
@@ -919,32 +919,32 @@ CORS_ALLOW_HEADERS = ['accept', 'accept-encoding', 'authorization', 'content-typ
 
 ## Summary & Action Plan
 
-### Немедленные действия (перед production):
+### Immediate actions (before production):
 
-1. 🔴 **SEC-001**: Добавить XSS protection (bleach sanitization)
-2. 🔴 **SEC-005**: Удалить `@csrf_exempt` и настроить CSRF tokens
+1. 🔴 **SEC-001**: Add XSS protection (bleach sanitization)
+2. 🔴 **SEC-005**: Remove `@csrf_exempt` and configure CSRF tokens
 3. 🔴 **SEC-007**: Implement account lockout mechanism
-4. 🔴 **SEC-022**: Проверить production configuration (DEBUG=False)
+4. 🔴 **SEC-022**: Check production configuration (DEBUG=False)
 
-### Высокий приоритет (1-2 недели):
+### High priority (1-2 weeks):
 
-5. 🟠 **SEC-003**: Безопасные cache keys (hashing)
-6. 🟠 **SEC-006**: Rate limiting для API endpoints
+5. 🟠 **SEC-003**: Secure cache keys (hashing)
+6. 🟠 **SEC-006**: Rate limiting for API endpoints
 7. 🟠 **SEC-009**: Session security configuration
 
-### Средний приоритет (1 месяц):
+### Medium priority (1 month):
 
-8. 🟡 **SEC-004**: Валидация длины полей
-9. 🟡 **SEC-014**: Pagination для VehicleViewSet
+8. 🟡 **SEC-004**: Field length validation
+9. 🟡 **SEC-014**: Pagination for VehicleViewSet
 10. 🟡 **SEC-015**: Cache limits
 11. 🟡 **SEC-017**: Custom error handlers
-12. 🟡 **SEC-020**: Фильтрация sensitive data в логах
+12. 🟡 **SEC-020**: Filtering sensitive data in logs
 13. 🟡 **SEC-023**: Dependency audit
 14. 🟡 **SEC-024**: CORS production config
 
-### Низкий приоритет (backlog):
+### Low priority (backlog):
 
-15. 🟢 **SEC-008**: Усиленная валидация паролей
+15. 🟢 **SEC-008**: Stronger password validation
 16. 🟢 **SEC-016**: Web server hardening
 17. 🟢 **SEC-018**: Constant-time auth responses
 
@@ -952,23 +952,22 @@ CORS_ALLOW_HEADERS = ['accept', 'accept-encoding', 'authorization', 'content-typ
 
 ## Conclusion
 
-Приложение Fuel Tracker демонстрирует **хороший baseline уровень безопасности** с корректной реализацией:
+The Fuel Tracker application demonstrates a **good baseline level of security** with correct implementation of:
 - ✅ Row-level security
 - ✅ IDOR protection
 - ✅ SQL injection protection (Django ORM)
 - ✅ Password hashing
 - ✅ Environment variables protection
 
-**Критические** проблемы связаны с:
+**Critical** issues are related to:
 - 🔴 XSS protection
-- 🔴 CSRF protection на auth endpoints
+- 🔴 CSRF protection on auth endpoints
 - 🔴 Account brute force protection
 
-После устранения критических уязвимостей приложение будет готово к production deployment с **рейтингом 9/10**.
+After fixing the critical vulnerabilities, the application will be ready for production deployment with a **rating of 9/10**.
 
 ---
 
 **Auditor:** Information Security Auditor  
-**Signature:** _____________  
+**Signature:** _            _
 **Date:** 2025-01-12
-

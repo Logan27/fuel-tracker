@@ -3,14 +3,13 @@ from rest_framework import permissions
 
 class IsOwner(permissions.BasePermission):
     """
-    Кастомный permission: доступ только владельцу объекта.
-    Проверяет, что obj.user == request.user
+    Custom permission: access only to the owner of the object.
+    Checks that obj.user == request.user
     """
 
     def has_object_permission(self, request, view, obj):
         """
-        Проверка на уровне объекта: пользователь может получить доступ
-        только к своим собственным объектам (Vehicle, FuelEntry)
+        Object-level check: user can only access their own objects (Vehicle, FuelEntry)
         """
         return obj.user == request.user
 

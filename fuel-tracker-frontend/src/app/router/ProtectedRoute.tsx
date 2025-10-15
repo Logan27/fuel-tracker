@@ -8,14 +8,14 @@ interface ProtectedRouteProps {
 }
 
 /**
- * HOC для защищённых маршрутов
- * Перенаправляет неавторизованных пользователей на страницу аутентификации
+ * HOC for protected routes
+ * Redirects unauthenticated users to authentication page
  */
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { isAuthenticated, isLoading } = useAuthStore();
   const location = useLocation();
 
-  // Показываем loader пока проверяем сессию
+  // Show loader while checking session
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -24,7 +24,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  // Если не аутентифицирован, редиректим на /auth с сохранением текущего пути
+  // If not authenticated, redirect to /auth preserving current path
   if (!isAuthenticated) {
     return <Navigate to={ROUTES.AUTH} state={{ from: location }} replace />;
   }

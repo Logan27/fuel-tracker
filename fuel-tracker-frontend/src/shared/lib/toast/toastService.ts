@@ -72,8 +72,8 @@ export class ToastService {
     const title = context ? `${context} failed` : 'Operation failed';
     
     if (error.status === 401) {
-      this.error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED, {
-        title: 'Session Expired',
+      this.error(ERROR_MESSAGES.AUTH_session_EXPIRED, {
+        title: 'session Expired',
         action: {
           label: 'Sign In',
           onClick: () => window.location.href = '/auth',

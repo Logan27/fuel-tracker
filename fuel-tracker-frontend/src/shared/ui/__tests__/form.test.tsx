@@ -44,7 +44,7 @@ const TestForm = () => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>email</FormLabel>
               <FormControl>
                 <Input placeholder="Enter your email" {...field} />
               </FormControl>
@@ -81,7 +81,7 @@ describe('Form', () => {
   it('should render form fields', () => {
     render(<TestForm />);
     
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    expect(screen.getByLabelText('email')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Submit' })).toBeInTheDocument();
   });
@@ -126,7 +126,7 @@ describe('Form', () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>email</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter your email" {...field} />
                   </FormControl>
@@ -155,7 +155,7 @@ describe('Form', () => {
     
     render(<TestFormWithCallback />);
     
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText('email');
     const passwordInput = screen.getByLabelText('Password');
     const submitButton = screen.getByRole('button', { name: 'Submit' });
     
@@ -173,7 +173,7 @@ describe('Form', () => {
     const user = userEvent.setup();
     render(<TestForm />);
     
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText('email');
     const passwordInput = screen.getByLabelText('Password');
     
     // Enter invalid email
@@ -193,7 +193,7 @@ describe('Form', () => {
     const user = userEvent.setup();
     render(<TestForm />);
     
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText('email');
     
     // Enter invalid email
     await user.type(emailInput, 'invalid-email');
@@ -230,7 +230,7 @@ describe('Form', () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>email</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter your email" {...field} />
                   </FormControl>

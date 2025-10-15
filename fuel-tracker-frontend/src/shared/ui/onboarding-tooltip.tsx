@@ -13,8 +13,8 @@ interface OnboardingTooltipProps {
     label: string;
     onClick: () => void;
   };
-  onNext: () => void;
-  onPrevious: () => void;
+  onnext: () => void;
+  onprevious: () => void;
   onSkip: () => void;
   onClose: () => void;
   currentStep: number;
@@ -29,8 +29,8 @@ export const OnboardingTooltip = React.forwardRef<HTMLDivElement, OnboardingTool
     description,
     position = 'bottom',
     action,
-    onNext,
-    onPrevious,
+    onnext,
+    onprevious,
     onSkip,
     onClose,
     currentStep,
@@ -120,10 +120,10 @@ export const OnboardingTooltip = React.forwardRef<HTMLDivElement, OnboardingTool
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={onPrevious}
+                      onClick={onprevious}
                     >
                       <ChevronLeft className="h-4 w-4 mr-1" />
-                      Previous
+                      previous
                     </Button>
                   )}
                   <Button
@@ -137,7 +137,7 @@ export const OnboardingTooltip = React.forwardRef<HTMLDivElement, OnboardingTool
                 
                 <Button
                   size="sm"
-                  onClick={onNext}
+                  onClick={onnext}
                 >
                   {isLastStep ? (
                     <>
@@ -146,7 +146,7 @@ export const OnboardingTooltip = React.forwardRef<HTMLDivElement, OnboardingTool
                     </>
                   ) : (
                     <>
-                      Next
+                      next
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </>
                   )}

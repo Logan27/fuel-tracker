@@ -2,80 +2,80 @@
 
 ## Version 1.0.0 - MVP Release
 
-### Подготовка к релизу
+### Release Preparation
 
-Приложение очищено от development-файлов и готово к production deployment.
+The application has been cleaned of development files and is ready for production deployment.
 
-#### Удалённые файлы и папки
+#### Removed Files and Folders
 
 **Backend (fuel-tracker-backend/):**
-- ✅ `scripts/` - development скрипты (add_data_for_user.py, check_*.py, load_test.py)
-- ✅ `logs/` - development логи
+- ✅ `scripts/` - development scripts (add_data_for_user.py, check_*.py, load_test.py)
+- ✅ `logs/` - development logs
 - ✅ `htmlcov/` - coverage reports
-- ✅ `docs/` - дублирующаяся документация
-- ✅ `api/authentication.py` - CSRF-exempt authentication (только для dev)
-- ✅ `CHANGELOG.md` - устаревший файл
+- ✅ `docs/` - duplicate documentation
+- ✅ `api/authentication.py` - CSRF-exempt authentication (dev only)
+- ✅ `CHANGELOG.md` - obsolete file
 
 **Frontend (fuel-tracker-frontend/):**
-- ✅ `src/App.css` - неиспользуемый CSS файл
-- ✅ `src/components/` - устаревшие compatibility wrappers
-- ✅ `src/hooks/` - дублирующиеся хуки (перенесены в shared/hooks)
-- ✅ `src/integrations/` - пустая папка
+- ✅ `src/App.css` - unused CSS file
+- ✅ `src/components/` - obsolete compatibility wrappers
+- ✅ `src/hooks/` - duplicate hooks (moved to shared/hooks)
+- ✅ `src/integrations/` - empty folder
 - ✅ `test-results/` - development test results
 - ✅ `playwright-report/` - development reports
-- ✅ `bun.lockb` - неиспользуемый lockfile
-- ✅ `CHANGELOG.md` - устаревший файл
+- ✅ `bun.lockb` - unused lockfile
+- ✅ `CHANGELOG.md` - obsolete file
 - ✅ `TESTING_GUIDE_PHASES_2-4.md` - development guide
 - ✅ `e2e/README.md` - development guide
 
-**Корневая папка:**
-- ✅ `GEMINI.md` - неиспользуемый файл
-- ✅ `docs/bugs.md` - development файл
-- ✅ `docs/roadmap-backend.md` - устаревший roadmap
-- ✅ `docs/roadmap-frontend.md` - устаревший roadmap
+**Root folder:**
+- ✅ `GEMINI.md` - unused file
+- ✅ `docs/bugs.md` - development file
+- ✅ `docs/roadmap-backend.md` - obsolete roadmap
+- ✅ `docs/roadmap-frontend.md` - obsolete roadmap
 - ✅ `docs/accessibility-checklist.md` - development checklist
 - ✅ `docs/browser-compatibility.md` - development checklist
 - ✅ `docs/responsive-checklist.md` - development checklist
 
-#### Обновлённые файлы
+#### Updated Files
 
 **Backend:**
-- `fuel_tracker/settings.py` - Заменён `CsrfExemptSessionAuthentication` на стандартную `SessionAuthentication` для production
+- `fuel_tracker/settings.py` - Replaced `CsrfExemptSessionAuthentication` with standard `SessionAuthentication` for production
 
 **Frontend:**
-- `src/pages/EntryForm.tsx` - Обновлён импорт Navigation
-- `src/pages/Settings.tsx` - Обновлён импорт Navigation
-- `src/shared/ui/toaster.tsx` - Обновлён импорт хука
-- `src/shared/ui/sidebar.tsx` - Обновлён импорт хука
-- `src/shared/ui/use-toast.ts` - Обновлён импорт хука
+- `src/pages/EntryForm.tsx` - Updated Navigation import
+- `src/pages/Settings.tsx` - Updated Navigation import
+- `src/shared/ui/toaster.tsx` - Updated hook import
+- `src/shared/ui/sidebar.tsx` - Updated hook import
+- `src/shared/ui/use-toast.ts` - Updated hook import
 
-### Текущая структура проекта
+### Current Project Structure
 
 ```
 fuel-tracker/
-├── docs/                    # Актуальная документация
-│   ├── arch.md              # Архитектура
-│   ├── brd.md               # Бизнес-требования
-│   ├── rest-api.md          # API спецификация
-│   ├── roadmap.md           # Единый roadmap
-│   ├── test-cases.md        # Тестовые сценарии
-│   ├── testing-guide.md     # Руководство по тестированию
-│   ├── api-examples.md      # Примеры API
-│   └── swagger-guide.md     # Swagger документация
+├── docs/                    # Current documentation
+│   ├── arch.md              # Architecture
+│   ├── brd.md               # Business Requirements
+│   ├── rest-api.md          # API Specification
+│   ├── roadmap.md           # Unified roadmap
+│   ├── test-cases.md        # Test Cases
+│   ├── testing-guide.md     # Testing Guide
+│   ├── api-examples.md      # API Examples
+│   └── swagger-guide.md     # Swagger Documentation
 ├── fuel-tracker-backend/    # Django REST API
-└── fuel-tracker-frontend/   # React + Vite приложение
+└── fuel-tracker-frontend/   # React + Vite application
 ```
 
 ### Production-Ready Features
 
-✅ Session-based authentication с CSRF защитой
-✅ Row-level security (изоляция данных пользователей)
+✅ Session-based authentication with CSRF protection
+✅ Row-level security (user data isolation)
 ✅ API documentation (Swagger UI / ReDoc)
-✅ 55 автоматических тестов (91% coverage)
-✅ E2E тесты (Playwright)
-✅ Unit тесты frontend (Vitest)
-✅ Error handling и централизованные логи
-✅ GDPR compliance (export/delete данных)
+✅ 55 automated tests (91% coverage)
+✅ E2E tests (Playwright)
+✅ Frontend unit tests (Vitest)
+✅ Error handling and centralized logs
+✅ GDPR compliance (data export/delete)
 ✅ Responsive design
 ✅ Accessibility (a11y)
 
@@ -84,7 +84,7 @@ fuel-tracker/
 **Backend:**
 ```bash
 cd fuel-tracker-backend
-# Создать .env на основе env.example
+# Create .env from env.example
 docker-compose up -d
 ```
 
@@ -93,42 +93,41 @@ docker-compose up -d
 cd fuel-tracker-frontend
 npm install
 npm run build
-npm run preview  # или deploy dist/ на hosting
+npm run preview  # or deploy dist/ to hosting
 ```
 
 ### Environment Variables
 
 **Backend (.env):**
 - `SECRET_KEY` - Django secret key
-- `DEBUG=False` - Production режим
-- `ALLOWED_HOSTS` - Список разрешённых хостов
+- `DEBUG=False` - Production mode
+- `ALLOWED_HOSTS` - List of allowed hosts
 - `CORS_ALLOWED_ORIGINS` - CORS whitelist
 - `DB_*` - PostgreSQL connection
 - `REDIS_*` - Redis connection
 
 **Frontend (.env):**
-- `VITE_API_URL` - URL backend API
+- `VITE_API_URL` - Backend API URL
 
 ### Security Notes
 
-⚠️ **ВАЖНО для production:**
-1. Установить `DEBUG=False` в backend settings
-2. Настроить `ALLOWED_HOSTS` и `CORS_ALLOWED_ORIGINS`
-3. Использовать HTTPS для всех запросов
-4. Настроить rate limiting на уровне reverse proxy (nginx)
-5. Регулярно обновлять зависимости
+⚠️ **IMPORTANT for production:**
+1. Set `DEBUG=False` in backend settings
+2. Configure `ALLOWED_HOSTS` and `CORS_ALLOWED_ORIGINS`
+3. Use HTTPS for all requests
+4. Configure rate limiting at the reverse proxy level (nginx)
+5. Regularly update dependencies
 
 ### Next Steps
 
-После деплоя рекомендуется:
-- Настроить мониторинг (Sentry, DataDog)
-- Настроить backup БД
-- Настроить CI/CD pipeline
-- Провести security audit
-- Настроить CDN для статики
+After deployment, it is recommended to:
+- Set up monitoring (Sentry, DataDog)
+- Set up DB backup
+- Set up CI/CD pipeline
+- Conduct a security audit
+- Set up a CDN for static files
 
 ---
 
-**Готово к релизу:** ✅
-**Дата подготовки:** 2025-10-12
-
+**Ready for release:** ✅
+**Preparation date:** 2025-10-12

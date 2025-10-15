@@ -1,87 +1,87 @@
 # Fuel Tracker Development Roadmap
 
-Этот документ описывает пошаговый план разработки MVP приложения Fuel Tracker.
+This document describes the step-by-step development plan for the Fuel Tracker MVP application.
 
 ---
 
-## Phase 0: Инфраструктура и настройка ✅
+## Phase 0: Infrastructure and Setup ✅
 
-### Монорепозиторий
-- [x] Объединение backend и frontend проектов
-- [x] Создание корневого docker-compose.yml
-- [x] Создание .env.example с документацией
-- [x] Настройка .gitignore
-- [x] Создание корневого README.md
-- [x] Создание CLAUDE.md для AI-ассистентов
+### Monorepo
+- [x] Combine backend and frontend projects
+- [x] Create a root docker-compose.yml
+- [x] Create .env.example with documentation
+- [x] Configure .gitignore
+- [x] Create a root README.md
+- [x] Create CLAUDE.md for AI assistants
 
 ### Backend (Django REST Framework)
-- [x] Базовая структура проекта Django
-- [x] Модели данных (User, Vehicle, FuelEntry)
-- [x] REST API endpoints (все CRUD операции)
-- [x] Аутентификация (session-based + CSRF)
-- [x] Permissions и изоляция данных
-- [x] Сервисный слой (бизнес-логика)
-- [x] Валидация (одометр, метрики)
+- [x] Basic Django project structure
+- [x] Data models (User, Vehicle, FuelEntry)
+- [x] REST API endpoints (all CRUD operations)
+- [x] Authentication (session-based + CSRF)
+- [x] Permissions and data isolation
+- [x] Service layer (business logic)
+- [x] Validation (odometer, metrics)
 - [x] Middleware (CorrelationId, Logging, Security)
-- [x] OpenAPI документация (Swagger UI)
-- [x] Тесты (55 тестов, 91% coverage)
+- [x] OpenAPI documentation (Swagger UI)
+- [x] Tests (55 tests, 91% coverage)
 - [x] Docker configuration
 
 ### Frontend (React + Vite + Zustand)
-- [x] Базовая структура FSD (Feature-Sliced Design)
+- [x] Basic FSD (Feature-Sliced Design) structure
 - [x] Zustand stores (auth, vehicle, userSettings)
 - [x] API client (Axios + CSRF handling)
-- [x] React Router настройка
-- [x] shadcn/ui компоненты
-- [x] Базовые типы и утилиты
+- [x] React Router setup
+- [x] shadcn/ui components
+- [x] Basic types and utilities
 
 ---
 
 ## Phase 1: Frontend-Backend Integration 🚀
 
-### 1.1. Authentication Flow (Приоритет: ВЫСОКИЙ) ✅
-- [x] **SignUp страница**
-  - [x] Подключить SignUpForm к API (`POST /api/v1/auth/signup`)
-  - [x] Обработка успешной регистрации (auto-login)
-  - [x] Обработка ошибок (email exists, weak password)
-  - [x] Тестирование CSRF токенов
-  - [x] Редирект на dashboard после успеха
+### 1.1. Authentication Flow (Priority: HIGH) ✅
+- [x] **SignUp Page**
+  - [x] Connect SignUpForm to API (`POST /api/v1/auth/signup`)
+  - [x] Handle successful registration (auto-login)
+  - [x] Handle errors (email exists, weak password)
+  - [x] Test CSRF tokens
+  - [x] Redirect to dashboard after success
 
-- [x] **SignIn страница**
-  - [x] Подключить SignInForm к API (`POST /api/v1/auth/signin`)
-  - [x] Обработка успешного входа
-  - [x] Обработка ошибок (invalid credentials)
-  - [x] "Remember me" функциональность
-  - [x] Редирект на dashboard после успеха
+- [x] **SignIn Page**
+  - [x] Connect SignInForm to API (`POST /api/v1/auth/signin`)
+  - [x] Handle successful sign-in
+  - [x] Handle errors (invalid credentials)
+  - [x] "Remember me" functionality
+  - [x] Redirect to dashboard after success
 
-- [x] **SignOut функциональность**
-  - [x] Реализовать logout (`POST /api/v1/auth/signout`)
-  - [x] Очистка auth state (Zustand store)
-  - [x] Редирект на /auth
-  - [x] Добавить кнопку Logout в навигацию
+- [x] **SignOut Functionality**
+  - [x] Implement logout (`POST /api/v1/auth/signout`)
+  - [x] Clear auth state (Zustand store)
+  - [x] Redirect to /auth
+  - [x] Add Logout button to navigation
 
 - [x] **Session Persistence**
-  - [x] Проверка аутентификации при загрузке приложения
-  - [x] Автоматический редирект на /auth если не авторизован
-  - [x] Восстановление user profile из API
+  - [x] Check authentication on application load
+  - [x] Automatically redirect to /auth if not authenticated
+  - [x] Restore user profile from API
   - [x] Handling expired sessions (401 responses)
 
-### 1.2. Dashboard Page (Приоритет: ВЫСОКИЙ) ✅
+### 1.2. Dashboard Page (Priority: HIGH) ✅
 - [x] **Layout & Navigation**
-  - [x] Создать Dashboard page компонент
-  - [x] Sidebar с навигацией
-  - [x] Header с user menu
+  - [x] Create Dashboard page component
+  - [x] Sidebar with navigation
+  - [x] Header with user menu
   - [x] Breadcrumbs
-  - [x] Vehicle selector в header
+  - [x] Vehicle selector in header
 
 - [x] **User Profile Display**
   - [x] Fetch user profile (`GET /api/v1/users/me`)
-  - [x] Отображение имени и email
-  - [x] Отображение unit preferences
+  - [x] Display name and email
+  - [x] Display unit preferences
 
 - [x] **Vehicle Overview**
   - [x] Fetch vehicles list (`GET /api/v1/vehicles`)
-  - [x] Карточки автомобилей
+  - [x] Vehicle cards
   - [x] Quick stats per vehicle
   - [x] Empty state (no vehicles yet)
   - [x] "Add Vehicle" CTA
@@ -97,49 +97,49 @@
 - [x] **Charts**
   - [x] Line chart: Cost per liter over time
   - [x] Line chart: Consumption (L/100km or MPG) over time
-  - [x] Integration с recharts библиотекой
+  - [x] Integration with recharts library
   - [x] Responsive design
 
 - [x] **Period Selector**
   - [x] Dropdown: Last 30 days / 90 days / YTD / Custom
-  - [x] Date range picker для Custom
-  - [x] Автоматическое обновление данных при смене периода
-  - [x] Сохранение выбранного периода в state
+  - [x] Date range picker for Custom
+  - [x] Automatic data update on period change
+  - [x] Save selected period in state
 
-### 1.3. Vehicles Management (Приоритет: СРЕДНИЙ) ✅
+### 1.3. Vehicles Management (Priority: MEDIUM) ✅
 - [x] **Vehicles List Page**
-  - [x] Таблица/карточки всех vehicles
-  - [x] Сортировка (по дате, имени)
-  - [x] Поиск по имени
+  - [x] Table/cards of all vehicles
+  - [x] Sorting (by date, name)
+  - [x] Search by name
   - [x] Actions: Edit, Delete
   - [x] Empty state
 
 - [x] **Add Vehicle Form**
-  - [x] Модальное окно или отдельная страница
-  - [x] Поля: name (required), make, model, year, fuel_type
-  - [x] Валидация (Zod schema)
+  - [x] Modal window or separate page
+  - [x] Fields: name (required), make, model, year, fuel_type
+  - [x] Validation (Zod schema)
   - [x] API call: `POST /api/v1/vehicles`
   - [x] Success toast + redirect to list
 
 - [x] **Edit Vehicle Form**
-  - [x] Загрузка данных vehicle
-  - [x] Предзаполнение формы
+  - [x] Load vehicle data
+  - [x] Pre-fill the form
   - [x] API call: `PATCH /api/v1/vehicles/{id}`
   - [x] Success toast + refresh list
 
 - [x] **Delete Vehicle**
-  - [x] Confirmation dialog с предупреждением
-  - [x] Информация о количестве связанных fuel entries
+  - [x] Confirmation dialog with a warning
+  - [x] Information about the number of associated fuel entries
   - [x] API call: `DELETE /api/v1/vehicles/{id}`
   - [x] Cascade delete explanation
   - [x] Success toast + refresh list
 
-### 1.4. Fuel Entries (Приоритет: ВЫСОКИЙ) ✅
+### 1.4. Fuel Entries (Priority: HIGH) ✅
 - [x] **Fuel Entries List Page**
   - [x] Fetch entries (`GET /api/v1/fuel-entries`)
-  - [x] Таблица с колонками: date, vehicle, station, liters, cost, metrics
+  - [x] Table with columns: date, vehicle, station, liters, cost, metrics
   - [x] Pagination (infinite scroll)
-  - [x] Sorting по дате (desc by default)
+  - [x] Sorting by date (desc by default)
   - [x] Actions: Edit, Delete
   - [x] Empty state
 
@@ -149,51 +149,51 @@
   - [x] Fuel brand dropdown
   - [x] Fuel grade dropdown
   - [x] Station name search
-  - [x] Query params в URL для filters
+  - [x] Query params in URL for filters
 
 - [x] **Add Fuel Entry Form**
-  - [x] Модальное окно или отдельная страница
-  - [x] Поля: vehicle, date, odometer, station, brand, grade, liters, total_amount, notes
-  - [x] Zod validation schema (все бизнес-правила)
-  - [x] Odometer validation (monotonicity check на клиенте)
+  - [x] Modal window or separate page
+  - [x] Fields: vehicle, date, odometer, station, brand, grade, liters, total_amount, notes
+  - [x] Zod validation schema (all business rules)
+  - [x] Odometer validation (monotonicity check on the client)
   - [x] Real-time computed fields: unit_price, expected consumption
   - [x] API call: `POST /api/v1/fuel-entries`
   - [x] Success toast + redirect/refresh
 
 - [x] **Edit Fuel Entry**
-  - [x] Загрузка entry data
-  - [x] Предзаполнение формы
-  - [x] Валидация odometer (с учётом соседних entries)
-  - [x] Предупреждение о cascade recalculation
+  - [x] Load entry data
+  - [x] Pre-fill the form
+  - [x] Odometer validation (considering adjacent entries)
+  - [x] Warning about cascade recalculation
   - [x] API call: `PATCH /api/v1/fuel-entries/{id}`
   - [x] Success toast + refresh
 
 - [x] **Delete Fuel Entry**
   - [x] Confirmation dialog
-  - [x] Информация о влиянии на метрики
+  - [x] Information about the impact on metrics
   - [x] API call: `DELETE /api/v1/fuel-entries/{id}`
   - [x] Success toast + refresh
 
 - [x] **Entry Details View**
-  - [x] Модальное окно с детальной информацией
-  - [x] Все computed metrics
+  - [x] Modal window with detailed information
+  - [x] All computed metrics
   - [x] Edit/Delete actions
 
-### 1.5. Statistics & Analytics (Приоритет: СРЕДНИЙ) ✅
+### 1.5. Statistics & Analytics (Priority: MEDIUM) ✅
 - [x] **Brand/Grade Comparison Page**
   - [x] Fetch data (`GET /api/v1/statistics/by-brand`, `/api/v1/statistics/by-grade`)
-  - [x] Таблица: Brand × (avg cost/L, avg consumption, count)
-  - [x] Таблица: Grade × (avg cost/L, avg consumption, count)
-  - [x] Sorting по колонкам
+  - [x] Table: Brand × (avg cost/L, avg consumption, count)
+  - [x] Table: Grade × (avg cost/L, avg consumption, count)
+  - [x] Sorting by columns
   - [x] Vehicle filter
   - [x] Period filter
   - [x] Export to CSV functionality
 
-- [x] **Advanced Charts** (опционально)
-  - [x] Интеграция с существующими charts на Dashboard
-  - [x] Responsive design для таблиц
+- [x] **Advanced Charts** (optional)
+  - [x] Integration with existing charts on Dashboard
+  - [x] Responsive design for tables
 
-### 1.6. User Settings (Приоритет: НИЗКИЙ) ✅
+### 1.6. User Settings (Priority: LOW) ✅
 - [x] **Profile Settings Page**
   - [x] Display current settings
   - [x] Display user email
@@ -211,53 +211,53 @@
   - [x] Export Data button → `GET /api/v1/users/me/export`
   - [x] Download CSV file
   - [x] Delete Account button → `DELETE /api/v1/users/me`
-  - [x] Confirmation dialog с предупреждением
-  - [x] Понятное объяснение последствий
+  - [x] Confirmation dialog with a warning
+  - [x] Clear explanation of consequences
 
 ---
 
 ## Phase 2: Polish & UX Enhancements 🎨
 
 ### 2.1. Error Handling & Feedback
-- [ ] Централизованный error handler для API
+- [ ] Centralized error handler for API
 - [ ] Toast notifications (success, error, warning)
-- [ ] Inline form errors с понятными сообщениями
-- [ ] Retry logic для failed requests
+- [ ] Inline form errors with clear messages
+- [ ] Retry logic for failed requests
 - [ ] Network error states
 
 ### 2.2. Loading States
-- [ ] Skeleton loaders для списков
-- [ ] Spinner для кнопок (loading buttons)
-- [ ] Optimistic UI updates где возможно
-- [ ] Suspense boundaries для code splitting
+- [ ] Skeleton loaders for lists
+- [ ] Spinner for buttons (loading buttons)
+- [ ] Optimistic UI updates where possible
+- [ ] Suspense boundaries for code splitting
 
 ### 2.3. Empty States
-- [ ] Красивые empty states для всех списков
-- [ ] Onboarding tooltips для первых действий
-- [ ] Помощь пользователю ("Add your first vehicle")
+- [ ] Beautiful empty states for all lists
+- [ ] Onboarding tooltips for first actions
+- [ ] User assistance ("Add your first vehicle")
 
 ### 2.4. Mobile Responsive
-- [ ] Тестирование на разных размерах экрана (≥360px)
+- [ ] Testing on different screen sizes (≥360px)
 - [ ] Mobile-friendly navigation (hamburger menu)
-- [ ] Touch-friendly кнопки и формы
-- [ ] Адаптивные таблицы (cards на mobile)
+- [ ] Touch-friendly buttons and forms
+- [ ] Responsive tables (cards on mobile)
 
 ### 2.5. Accessibility (a11y)
 - [x] Keyboard navigation (Tab, Enter, Esc)
-- [x] ARIA labels для всех интерактивных элементов
+- [x] ARIA labels for all interactive elements
 - [x] Focus indicators
 - [x] Screen reader testing
-- [x] Color contrast проверка
+- [x] Color contrast check
 
 ---
 
 ## Phase 3: Testing & Quality Assurance 🧪
 
 ### 3.1. Frontend Testing
-- [x] Unit tests для utils и helpers
+- [x] Unit tests for utils and helpers
 - [x] Component tests (Testing Library)
-- [x] Integration tests для forms
-- [x] API mocking для tests
+- [x] Integration tests for forms
+- [x] API mocking for tests
 - [x] Coverage target: 70%+
 
 ### 3.2. E2E Testing
@@ -269,7 +269,7 @@
 ### 3.3. Performance Testing
 - [ ] Lighthouse audit (target: 90+ score)
 - [ ] Bundle size analysis
-- [ ] Lazy loading проверка
+- [ ] Lazy loading check
 - [ ] Image optimization
 
 ---
@@ -279,9 +279,9 @@
 ### 4.1. Production Configuration
 - [ ] Production docker-compose.yml
 - [ ] Environment-specific configs
-- [ ] Health checks для всех сервисов
+- [ ] Health checks for all services
 - [ ] Gunicorn configuration
-- [ ] Nginx reverse proxy (опционально)
+- [ ] Nginx reverse proxy (optional)
 
 
 ### 4.2. Security Audit
@@ -304,22 +304,22 @@
 - [ ] Performance benchmarks (P95 < 500ms)
 - [ ] Load testing
 - [ ] Browser compatibility testing
-- [ ] Full smoke test на production
+- [ ] Full smoke test in production
 - [ ] Monitoring setup (logs, metrics)
 
 ---
 
 ## Post-MVP: Future Enhancements 🔮
 
-**Не для текущего MVP, но для будущих версий:**
+**Not for the current MVP, but for future versions:**
 
-- [ ] OCR для распознавания чеков
+- [ ] OCR for receipt recognition
 - [ ] Mobile native apps (React Native)
 - [ ] Push notifications
 - [ ] Shared accounts / Fleet management
-- [ ] Trip tracking с GPS
+- [ ] Trip tracking with GPS
 - [ ] Fuel price alerts
-- [ ] Tax reports генерация
+- [ ] Tax reports generation
 - [ ] Multi-language support (i18n)
 - [ ] Dark mode theme
 - [ ] Export to PDF/Excel
@@ -328,13 +328,13 @@
 
 ---
 
-## Текущий статус
+## Current Status
 
-**Текущая фаза:** Phase 2 - Polish & UX Enhancements
-**Следующий шаг:** Начать Phase 2 - Error Handling & Feedback
+**Current Phase:** Phase 2 - Polish & UX Enhancements
+**Next Step:** Start Phase 2 - Error Handling & Feedback
 
-**Прогресс:**
-- ✅ Phase 0: Инфраструктура (100%)
+**Progress:**
+- ✅ Phase 0: Infrastructure (100%)
 - ✅ Phase 1: Frontend-Backend Integration (100%)
   - ✅ 1.1: Authentication Flow (100%)
   - ✅ 1.2: Dashboard Page (100%)

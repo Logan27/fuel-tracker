@@ -11,14 +11,14 @@ import {
 } from '@/shared/lib/utils';
 
 /**
- * Хук для конвертации и форматирования единиц измерения
- * согласно настройкам пользователя
+ * Hook for converting and formatting units of measurement
+ * according to user settings
  */
 export const useUnitConversion = () => {
   const { preferred_currency, preferred_distance_unit, preferred_volume_unit, price_precision } =
     useUserSettingsStore();
 
-  // Мемоизируем функции конвертации для оптимизации
+  // Memoize conversion functions for optimization
   const convertDistanceFromKm = useMemo(() => (km: number): number => {
     return convertDistance(km, 'km', preferred_distance_unit);
   }, [preferred_distance_unit]);
@@ -32,7 +32,7 @@ export const useUnitConversion = () => {
       // L/100km → MPG (US)
       return convertConsumption(l100km, 'L/100km', 'mpg');
     }
-    // Остаётся L/100km если используем km
+    // Remains L/100km if using km
     return l100km;
   }, [preferred_distance_unit, preferred_volume_unit]);
 
@@ -79,25 +79,25 @@ export const useUnitConversion = () => {
   }, [preferred_distance_unit, preferred_volume_unit]);
 
   return {
-    // Настройки
+    // Settings
     currency: preferred_currency,
     distanceUnit: preferred_distance_unit,
     volumeUnit: preferred_volume_unit,
     pricePrecision: price_precision,
 
-    // Функции конвертации
+    // Conversion functions
     convertDistanceFromKm,
     convertVolumeFromLiters,
     convertConsumptionFromMetric,
 
-    // Функции форматирования
+    // Formatting functions
     formatDistance: formatDistanceValue,
     formatVolume: formatVolumeValue,
     formatConsumption: formatConsumptionValue,
     formatCurrency: formatCurrencyValue,
     formatPrice: formatPriceValue,
 
-    // Метки единиц
+    // Unit labels
     getDistanceUnitLabel,
     getVolumeUnitLabel,
     getConsumptionUnitLabel,

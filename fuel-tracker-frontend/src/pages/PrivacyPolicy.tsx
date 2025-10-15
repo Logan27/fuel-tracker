@@ -52,7 +52,7 @@ const PrivacyPolicy = () => {
               </p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                 <li>
-                  <strong>Account Data:</strong> Email address, username, password
+                  <strong>Account Data:</strong> email address, username, password
                 </li>
                 <li>
                   <strong>Vehicle Data:</strong> Vehicle information (make, model, year,

@@ -1,18 +1,18 @@
 import { z } from 'zod';
 
 /**
- * Схема валидации email
+ * Email validation schema
  */
 export const emailSchema = z
   .string()
-  .min(1, 'Email is required')
+  .min(1, 'email is required')
   .email('Invalid email format');
 
 /**
- * Схема валидации пароля
- * - Минимум 8 символов
- * - Минимум 1 буква
- * - Минимум 1 цифра
+ * Password validation schema
+ * - Minimum 8 characters
+ * - Minimum 1 letter
+ * - Minimum 1 digit
  */
 export const passwordSchema = z
   .string()
@@ -21,7 +21,7 @@ export const passwordSchema = z
   .regex(/\d/, 'Password must contain at least one number');
 
 /**
- * Схема для формы регистрации
+ * Sign up form schema
  */
 export const signUpSchema = z
   .object({
@@ -35,7 +35,7 @@ export const signUpSchema = z
   });
 
 /**
- * Схема для формы входа
+ * Sign in form schema
  */
 export const signInSchema = z.object({
   email: emailSchema,
@@ -43,7 +43,7 @@ export const signInSchema = z.object({
 });
 
 /**
- * Типы для форм
+ * Types for forms
  */
 export type SignUpFormData = z.infer<typeof signUpSchema>;
 export type SignInFormData = z.infer<typeof signInSchema>;

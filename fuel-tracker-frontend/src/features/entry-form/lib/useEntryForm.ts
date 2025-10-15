@@ -7,13 +7,13 @@ import type { EntryFormData } from './entrySchemas';
 import { getErrorMessage, isAuthError, isNetworkError } from '@/shared/lib/error-handler';
 
 /**
- * Хук для работы с формой fuel entry (создание/редактирование)
+ * Hook for working with fuel entry form (create/edit)
  */
 export const useEntryForm = (entryId?: number) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Создание записи
+  // Create entry
   const createMutation = useMutation({
     mutationFn: (data: CreateFuelEntryDto) => fuelEntryApi.create(data),
     onSuccess: () => {
@@ -26,14 +26,14 @@ export const useEntryForm = (entryId?: number) => {
       const message = getErrorMessage(error);
       toast.error(message);
       
-      // Если это ошибка аутентификации, перенаправляем на страницу входа
+      // If this is authentication error, redirect to sign in page
       if (isAuthError(error)) {
         navigate('/auth');
       }
     },
   });
 
-  // Обновление записи
+  // Update entry
   const updateMutation = useMutation({
     mutationFn: (data: UpdateFuelEntryDto) => {
       if (!entryId) throw new Error('Entry ID is required for update');
@@ -50,14 +50,14 @@ export const useEntryForm = (entryId?: number) => {
       const message = getErrorMessage(error);
       toast.error(message);
       
-      // Если это ошибка аутентификации, перенаправляем на страницу входа
+      // If this is authentication error, redirect to sign in page
       if (isAuthError(error)) {
         navigate('/auth');
       }
     },
   });
 
-  // Удаление записи
+  // Delete entry
   const deleteMutation = useMutation({
     mutationFn: (id: number) => fuelEntryApi.delete(id),
     onSuccess: () => {
@@ -70,7 +70,7 @@ export const useEntryForm = (entryId?: number) => {
       const message = getErrorMessage(error);
       toast.error(message);
       
-      // Если это ошибка аутентификации, перенаправляем на страницу входа
+      // If this is authentication error, redirect to sign in page
       if (isAuthError(error)) {
         navigate('/auth');
       }
@@ -85,7 +85,7 @@ export const useEntryForm = (entryId?: number) => {
     console.log('Liters:', data.liters);
     console.log('Total Amount:', data.total_amount);
     
-    // Валидация обязательных полей
+    // Validate required fields
     if (!entryId && !data.vehicle_id) {
       console.log('ERROR: No vehicle selected');
       toast.error('Please select a vehicle');
@@ -98,7 +98,7 @@ export const useEntryForm = (entryId?: number) => {
     }
 
     if (entryId) {
-      // Обновление существующей записи (vehicle_id не передается)
+      // Updating existing entry (vehicle_id not passed)
       const updateData: UpdateFuelEntryDto = {
         entry_date: data.entry_date,
         odometer: data.odometer,
@@ -111,7 +111,7 @@ export const useEntryForm = (entryId?: number) => {
       };
       updateMutation.mutate(updateData);
     } else {
-      // Создание новой записи
+      // Creating new entry
       const createData: CreateFuelEntryDto = {
         vehicle: data.vehicle_id,
         entry_date: data.entry_date,

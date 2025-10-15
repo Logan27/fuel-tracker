@@ -4,55 +4,55 @@
 
 ### Regular Checks
 
-Регулярно проверяйте зависимости на уязвимости:
+Regularly check dependencies for vulnerabilities:
 
 ```bash
-# Python dependencies audit (рекомендуется раз в месяц)
+# Python dependencies audit (recommended once a month)
 pip list --outdated
-pip-audit  # Требует установки: pip install pip-audit
+pip-audit  # Requires installation: pip install pip-audit
 
 # Docker image security scan
 docker scan fuel-tracker-backend
 
-# Trivy (альтернатива)
+# Trivy (alternative)
 trivy image fuel-tracker-backend
 ```
 
 ### Automated Monitoring
 
-Рекомендуется настроить автоматический мониторинг через:
-- **GitHub Dependabot** (автоматические PR с обновлениями)
-- **Snyk** (сканирование уязвимостей)
+It is recommended to set up automatic monitoring through:
+- **GitHub Dependabot** (automatic PRs with updates)
+- **Snyk** (vulnerability scanning)
 - **PyUp** (Python-specific dependency monitoring)
 
 ### Critical Dependencies
 
-Особое внимание уделять:
-- **Django** - веб-фреймворк (критичные security updates)
-- **psycopg2** - PostgreSQL драйвер
-- **redis** - кэширование
+Pay special attention to:
+- **Django** - web framework (critical security updates)
+- **psycopg2** - PostgreSQL driver
+- **redis** - caching
 - **djangorestframework** - API framework
 
 ### Update Policy
 
-1. **Security updates**: Применять немедленно
-2. **Minor updates**: Тестировать и применять ежемесячно
-3. **Major updates**: Планировать и тестировать перед применением
+1.  **Security updates**: Apply immediately
+2.  **Minor updates**: Test and apply monthly
+3.  **Major updates**: Plan and test before applying
 
 ## Password Security
 
-- Минимальная длина: 8 символов
+- Minimum length: 8 characters
 - Django validators:
-  - UserAttributeSimilarityValidator (не похож на email/username)
-  - CommonPasswordValidator (не из списка популярных паролей)
-  - NumericPasswordValidator (не только цифры)
+  - UserAttributeSimilarityValidator (not similar to email/username)
+  - CommonPasswordValidator (not from the list of common passwords)
+  - NumericPasswordValidator (not only numbers)
 
 ## Session Security
 
-- Session lifetime: 1 час (3600 секунд)
-- HttpOnly cookies (защита от XSS)
-- SameSite=Lax (защита от CSRF)
-- Secure cookies в production (только HTTPS)
+- Session lifetime: 1 hour (3600 seconds)
+- HttpOnly cookies (XSS protection)
+- SameSite=Lax (CSRF protection)
+- Secure cookies in production (HTTPS only)
 
 ## Rate Limiting
 
@@ -62,44 +62,43 @@ trivy image fuel-tracker-backend
 
 ## Account Lockout
 
-- 5 неудачных попыток входа → блокировка на 15 минут
-- Логирование всех failed attempts с IP адресами
+- 5 failed login attempts → block for 15 minutes
+- Logging of all failed attempts with IP addresses
 
 ## Input Validation
 
-- XSS sanitization через `bleach` library
-- Максимальная длина всех текстовых полей
-- Валидация на уровне serializers и моделей
+- XSS sanitization via `bleach` library
+- Maximum length for all text fields
+- Validation at the serializer and model levels
 
 ## Logging
 
-- Correlation ID для всех запросов
-- Request/Response logging (БЕЗ sensitive data)
-- Security events в отдельный лог (`logs/security.log`)
+- Correlation ID for all requests
+- Request/Response logging (WITHOUT sensitive data)
+- Security events in a separate log (`logs/security.log`)
 
 ## Production Checklist
 
 - [ ] `DEBUG=False`
-- [ ] Уникальный `SECRET_KEY` (>50 символов)
-- [ ] `ALLOWED_HOSTS` указаны явно
+- [ ] Unique `SECRET_KEY` (>50 characters)
+- [ ] `ALLOWED_HOSTS` are specified explicitly
 - [ ] `CORS_ALLOWED_ORIGINS` whitelist
-- [ ] SSL/HTTPS настроен
+- [ ] SSL/HTTPS is configured
 - [ ] Security headers (HSTS, CSP, X-Frame-Options)
-- [ ] Database backups настроены
-- [ ] Monitoring и alerting
+- [ ] Database backups are configured
+- [ ] Monitoring and alerting
 
 ## Incident Response
 
-При обнаружении security инцидента:
+In case of a security incident:
 
-1. **Изолировать**: Отключить затронутый сервис
-2. **Оценить**: Определить масштаб утечки/компрометации
-3. **Уведомить**: Пользователей (если их данные затронуты)
-4. **Исправить**: Применить патч/фикс
-5. **Документировать**: Post-mortem анализ
-6. **Предотвратить**: Обновить процессы/тесты
+1.  **Isolate**: Disable the affected service
+2.  **Assess**: Determine the extent of the leak/compromise
+3.  **Notify**: Users (if their data is affected)
+4.  **Fix**: Apply a patch/fix
+5.  **Document**: Post-mortem analysis
+6.  **Prevent**: Update processes/tests
 
 ## Contact
 
 Security issues: security@example.com
-

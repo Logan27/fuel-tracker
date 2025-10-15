@@ -26,19 +26,19 @@ export const StatsOverview = ({ aggregates, isLoading }: StatsOverviewProps) => 
   const volumeUnit = getVolumeUnitLabel;
   const consumptionUnit = getConsumptionUnitLabel;
 
-  // Конвертируем unit price из цены за литр в цену за выбранную единицу объема
+  // Convert unit price from price per liter to price per selected volume unit
   const convertUnitPrice = (pricePerLiter: number): number => {
-    // Если единица измерения - галлоны, конвертируем цену
-    // 1 gallon = 3.78541 liters, поэтому цена за галлон = цена за литр * 3.78541
-    const volumeInTargetUnit = convertVolumeFromLiters(1); // Конвертируем 1 литр в целевую единицу
+    // If unit is gallons, convert price
+    // 1 gallon = 3.78541 liters, so price per gallon = price per liter * 3.78541
+    const volumeInTargetUnit = convertVolumeFromLiters(1); // Convert 1 liter to target unit
     return pricePerLiter * volumeInTargetUnit;
   };
 
-  // Конвертируем cost per km в cost per выбранную единицу расстояния
+  // Convert cost per km to cost per selected distance unit
   const convertCostPerDistance = (costPerKm: number): number => {
-    // Если единица измерения - мили, конвертируем стоимость
-    // 1 mile = 1.60934 km, поэтому cost per mile = cost per km * 1.60934
-    const distanceRatio = convertDistanceFromKm(1); // Конвертируем 1 км в целевую единицу
+    // If unit is miles, convert cost
+    // 1 mile = 1.60934 km, so cost per mile = cost per km * 1.60934
+    const distanceRatio = convertDistanceFromKm(1); // Convert 1 km to target unit
     return costPerKm * distanceRatio;
   };
 

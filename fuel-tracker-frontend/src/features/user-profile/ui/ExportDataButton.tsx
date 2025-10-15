@@ -12,7 +12,7 @@ export const ExportDataButton = () => {
     try {
       const blob = await userApi.exportData();
       
-      // Создаём ссылку для скачивания
+      // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -20,7 +20,7 @@ export const ExportDataButton = () => {
       document.body.appendChild(link);
       link.click();
       
-      // Очищаем
+      // Clear
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       

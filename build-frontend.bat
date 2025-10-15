@@ -1,15 +1,15 @@
 @echo off
-REM Скрипт для локальной сборки frontend (Windows)
+REM Script for local frontend build (Windows)
 
 echo 🔨 Building frontend...
 
 cd fuel-tracker-frontend
 
-REM Установка зависимостей
+REM Install dependencies
 echo 📦 Installing dependencies...
 call npm install
 
-REM Сборка production build
+REM Build production bundle
 echo 🏗️  Building production bundle...
 call npm run build
 

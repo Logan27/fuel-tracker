@@ -40,9 +40,9 @@ const Entries = () => {
   const {
     data,
     isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
+    isFetchingnextPage,
+    hasnextPage,
+    fetchnextPage,
   } = useEntries(filters);
 
   // Entry mutations
@@ -92,9 +92,9 @@ const Entries = () => {
         entries={allEntries}
         vehicles={vehicles}
         isLoading={isLoading}
-        isFetchingNextPage={isFetchingNextPage}
-        hasNextPage={hasNextPage}
-        onLoadMore={fetchNextPage}
+        isFetchingnextPage={isFetchingnextPage}
+        hasnextPage={hasnextPage}
+        onLoadMore={fetchnextPage}
         onEdit={handleEdit}
         onDelete={setDeleteEntry}
         onViewDetails={handleViewDetails}

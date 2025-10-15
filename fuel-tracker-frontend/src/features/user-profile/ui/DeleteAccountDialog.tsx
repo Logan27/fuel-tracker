@@ -36,7 +36,7 @@ export const DeleteAccountDialog = () => {
     try {
       await userApi.deleteAccount();
       
-      // Очищаем все локальные данные
+      // Clear all local data
       logout();
       vehicleStore.setVehicles([]);
       vehicleStore.setSelectedVehicleId(null);

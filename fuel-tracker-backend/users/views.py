@@ -50,7 +50,7 @@ class SignUpView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         
-        # Определяем locale (currency и timezone) из заголовков браузера
+        # Determine locale (currency and timezone) from browser headers
         currency, timezone = get_locale_from_request(request)
         user.preferred_currency = currency
         user.timezone = timezone
@@ -58,9 +58,9 @@ class SignUpView(generics.CreateAPIView):
         
         logger.info(f"New user registered: {user.email}, locale: {currency}, {timezone}")
         
-        # Явно указываем, какой бэкенд использовался для аутентификации
-        # Это необходимо, так как у нас их несколько
-        user.backend = 'users.backends.EmailBackend'
+        # Explicitly specify which backend was used for authentication
+        # This is necessary since we have multiple backends
+        user.backend = 'users.backends.emailBackend'
         login(request, user)
         return Response(UserSignUpResponseSerializer(user).data, status=status.HTTP_201_CREATED)
 
@@ -84,11 +84,11 @@ class SignInView(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         email = request.data.get('email')
         
-        # Проверка account lockout перед валидацией
+        # Check account lockout before validation
         try:
             user = User.objects.get(email=email)
             
-            # Если аккаунт заблокирован
+            # If account is locked
             if user.locked_until and user.locked_until > timezone.now():
                 remaining_minutes = int((user.locked_until - timezone.now()).total_seconds() / 60)
                 logger.warning(
@@ -107,31 +107,31 @@ class SignInView(generics.GenericAPIView):
         except User.DoesNotExist:
             pass  # Continue to normal validation
         
-        # Валидация credentials
+        # Validation credentials
         serializer = self.get_serializer(data=request.data)
         
         if serializer.is_valid():
             user = serializer.validated_data['user']
             
-            # Успешный вход - reset failed attempts
+            # Successful login - reset failed attempts
             user.failed_login_attempts = 0
             user.locked_until = None
             user.save(update_fields=['failed_login_attempts', 'locked_until'])
             
             logger.info(f"Successful login: {user.email}")
             
-            # Явно указываем, какой бэкенд использовался для аутентификации
-            user.backend = 'users.backends.EmailBackend'
+            # Explicitly specify which backend was used for authentication
+            user.backend = 'users.backends.emailBackend'
             login(request, user)
             return Response(UserSerializer(user).data)
         
         else:
-            # Неудачная попытка - increment failed attempts
+            # Failed attempt - increment failed attempts
             try:
                 user = User.objects.get(email=email)
                 user.failed_login_attempts += 1
                 
-                # Блокировка после 5 неудачных попыток на 15 минут
+                # Lock after 5 failed attempts for 15 minutes
                 if user.failed_login_attempts >= 5:
                     user.locked_until = timezone.now() + timedelta(minutes=15)
                     logger.warning(
@@ -147,7 +147,7 @@ class SignInView(generics.GenericAPIView):
                 )
             
             except User.DoesNotExist:
-                # Не раскрываем существование email
+                # Do not reveal email existence
                 logger.warning(
                     f"[SECURITY] Login attempt for non-existent user: {email} | "
                     f"IP: {self.get_client_ip(request)}"
@@ -156,7 +156,7 @@ class SignInView(generics.GenericAPIView):
             return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
     
     def get_client_ip(self, request):
-        """Получить IP адрес клиента"""
+        """Get client IP address"""
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0]
@@ -188,8 +188,8 @@ class SignOutView(APIView):
 )
 class UserProfileView(generics.RetrieveUpdateAPIView):
     """
-    GET /api/v1/users/me - получить профиль текущего пользователя
-    PATCH /api/v1/users/me - обновить профиль текущего пользователя
+    GET /api/v1/users/me - get current user profile
+    PATCH /api/v1/users/me - update current user profile
     """
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = UserSerializer
@@ -219,26 +219,26 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 @permission_classes([permissions.IsAuthenticated])
 def export_user_data(request):
     """
-    GDPR: Экспорт всех данных пользователя в CSV формате.
+    GDPR: Export all user data in CSV format.
     
-    Возвращает CSV файл со всеми данными:
-    - Профиль пользователя
-    - Автомобили
-    - Записи о заправках
+    Returns CSV file with all data:
+    - User profile
+    - Vehicles
+    - Fuel entries
     """
     user = request.user
     
     logger.info(f"User {user.id} ({user.email}) requested data export")
     
-    # Создаём CSV в памяти
+    # Create CSV in memory
     output = StringIO()
     writer = csv.writer(output)
     
-    # Раздел 1: Профиль пользователя
+    # Section 1: User profile
     writer.writerow(['=== USER PROFILE ==='])
     writer.writerow(['Field', 'Value'])
     writer.writerow(['ID', user.id])
-    writer.writerow(['Email', user.email])
+    writer.writerow(['email', user.email])
     writer.writerow(['Username', user.username])
     writer.writerow(['Display Name', user.display_name])
     writer.writerow(['First Name', user.first_name])
@@ -251,7 +251,7 @@ def export_user_data(request):
     writer.writerow(['Last Login', user.last_login])
     writer.writerow([])
     
-    # Раздел 2: Автомобили
+    # Section 2: Vehicles
     writer.writerow(['=== VEHICLES ==='])
     vehicles = user.vehicles.all()
     if vehicles.exists():
@@ -272,7 +272,7 @@ def export_user_data(request):
         writer.writerow(['No vehicles'])
     writer.writerow([])
     
-    # Раздел 3: Записи о заправках
+    # Section 3: Fuel entries
     writer.writerow(['=== FUEL ENTRIES ==='])
     fuel_entries = user.fuel_entries.select_related('vehicle').order_by('-entry_date')
     if fuel_entries.exists():
@@ -303,7 +303,7 @@ def export_user_data(request):
     else:
         writer.writerow(['No fuel entries'])
     
-    # Подготовка ответа
+    # Prepare response
     csv_data = output.getvalue()
     output.close()
     
@@ -318,7 +318,7 @@ def export_user_data(request):
 @extend_schema(
     summary="Delete user account (GDPR)",
     description="Permanently delete the user account and all associated data (vehicles, fuel entries). "
-                "This action cannot be undone. Session is terminated after deletion. "
+                "This action cannot be undone. session is terminated after deletion. "
                 "Complies with GDPR right to erasure.",
     tags=['Users'],
     request=None,
@@ -331,14 +331,14 @@ def export_user_data(request):
 @transaction.atomic
 def delete_user_account(request):
     """
-    GDPR: Безвозвратное удаление аккаунта пользователя и всех связанных данных.
+    GDPR: Irreversible deletion of user account and all related data.
     
-    Удаляет:
-    - Все записи о заправках
-    - Все автомобили
-    - Профиль пользователя
+    Deletes:
+    - All fuel entries
+    - All vehicles
+    - User profile
     
-    После удаления сессия завершается.
+    Session is terminated after deletion.
     """
     user = request.user
     user_id = user.id
@@ -346,14 +346,14 @@ def delete_user_account(request):
     
     logger.warning(f"User {user_id} ({user_email}) requested account deletion")
     
-    # Подсчитываем, что будет удалено (для логов)
+    # Count what will be deleted (for logs)
     vehicles_count = user.vehicles.count()
     fuel_entries_count = user.fuel_entries.count()
     
-    # Удаляем пользователя (каскадное удаление удалит vehicles и fuel_entries)
+    # Delete user (cascade deletion will remove vehicles and fuel_entries)
     user.delete()
     
-    # Завершаем сессию
+    # Terminate session
     logout(request)
     
     logger.warning(

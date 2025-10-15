@@ -1,15 +1,15 @@
 #!/bin/bash
-# Скрипт для локальной сборки frontend
+# Script for local frontend build
 
 echo "🔨 Building frontend..."
 
 cd fuel-tracker-frontend
 
-# Установка зависимостей
+# Install dependencies
 echo "📦 Installing dependencies..."
 npm install
 
-# Сборка production build
+# Build production bundle
 echo "🏗️  Building production bundle..."
 npm run build
 

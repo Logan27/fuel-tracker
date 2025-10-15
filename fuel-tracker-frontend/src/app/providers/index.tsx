@@ -11,7 +11,7 @@ interface AppProvidersProps {
 }
 
 /**
- * Композиция всех провайдеров приложения
+ * Composition of all app providers
  */
 export const AppProviders = ({ children }: AppProvidersProps) => {
   return (

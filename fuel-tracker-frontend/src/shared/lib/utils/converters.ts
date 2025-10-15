@@ -1,43 +1,43 @@
 /**
- * Конвертеры единиц измерения
+ * Unit converters
  */
 
-// Константы конвертации
+// Conversion constants
 const KM_TO_MI = 0.621371;
 const MI_TO_KM = 1.60934;
 const L_TO_GAL = 0.264172;
 const GAL_TO_L = 3.78541;
 
 /**
- * Конвертация километров в мили
+ * Convert kilometers to miles
  */
 export const kmToMiles = (km: number): number => {
   return km * KM_TO_MI;
 };
 
 /**
- * Конвертация миль в километры
+ * Convert miles to kilometers
  */
 export const milesToKm = (miles: number): number => {
   return miles * MI_TO_KM;
 };
 
 /**
- * Конвертация литров в галлоны
+ * Convert liters to gallons
  */
 export const litersToGallons = (liters: number): number => {
   return liters * L_TO_GAL;
 };
 
 /**
- * Конвертация галлонов в литры
+ * Convert gallons to liters
  */
 export const gallonsToLiters = (gallons: number): number => {
   return gallons * GAL_TO_L;
 };
 
 /**
- * Универсальная конвертация расстояния
+ * Universal distance conversion
  */
 export const convertDistance = (
   value: number,
@@ -49,7 +49,7 @@ export const convertDistance = (
 };
 
 /**
- * Универсальная конвертация объёма
+ * Universal volume conversion
  */
 export const convertVolume = (
   value: number,
@@ -61,7 +61,7 @@ export const convertVolume = (
 };
 
 /**
- * Конвертация расхода топлива L/100km ↔ MPG (US)
+ * Convert fuel consumption L/100km ↔ MPG (US)
  */
 export const convertConsumption = (
   value: number,

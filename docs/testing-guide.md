@@ -1,49 +1,49 @@
 # Testing Guide
 
-## Обзор
+## Overview
 
-Проект использует **Vitest** + **React Testing Library** для тестирования.
+The project uses **Vitest** + **React Testing Library** for testing.
 
-## Структура тестов
+## Test Structure
 
 ```
 src/
 ├── test/
-│   ├── setup.ts          # Глобальная конфигурация тестов
-│   └── utils.tsx         # Вспомогательные функции для тестов
+│   ├── setup.ts          # Global test configuration
+│   └── utils.tsx         # Helper functions for tests
 ├── shared/
 │   └── lib/
 │       └── utils/
-│           └── __tests__/  # Unit tests для utils
+│           └── __tests__/  # Unit tests for utils
 ├── app/
 │   └── stores/
-│       └── __tests__/      # Unit tests для stores
+│       └── __tests__/      # Unit tests for stores
 └── features/
     └── auth/
-        └── __tests__/      # Integration tests для features
+        └── __tests__/      # Integration tests for features
 ```
 
-## Запуск тестов
+## Running Tests
 
 ```bash
-# Запуск всех тестов
+# Run all tests
 npm test
 
-# Запуск тестов в watch mode
+# Run tests in watch mode
 npm test -- --watch
 
-# Запуск тестов с UI
+# Run tests with UI
 npm run test:ui
 
-# Запуск тестов с coverage
+# Run tests with coverage
 npm run test:coverage
 ```
 
-## Написание тестов
+## Writing Tests
 
 ### Unit Tests
 
-**Для утилит (converters, formatters):**
+**For utilities (converters, formatters):**
 
 ```typescript
 import { describe, it, expect } from 'vitest';
@@ -58,7 +58,7 @@ describe('converters', () => {
 });
 ```
 
-**Для Zustand stores:**
+**For Zustand stores:**
 
 ```typescript
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -66,7 +66,7 @@ import { useAuthStore } from '../authStore';
 
 describe('authStore', () => {
   beforeEach(() => {
-    // Reset store перед каждым тестом
+    // Reset store before each test
     useAuthStore.setState({
       user: null,
       isAuthenticated: false,
@@ -84,7 +84,7 @@ describe('authStore', () => {
 
 ### Integration Tests
 
-**Для React компонентов:**
+**For React components:**
 
 ```typescript
 import { describe, it, expect } from 'vitest';
@@ -101,18 +101,18 @@ describe('SignInForm', () => {
     await user.type(screen.getByLabelText(/password/i), 'password123');
     await user.click(screen.getByRole('button', { name: /sign in/i }));
 
-    // Проверки...
+    // Assertions...
   });
 });
 ```
 
 ## Best Practices
 
-### 1. Именование тестов
+### 1. Naming Tests
 
-- Используй `describe` для группировки
-- `it` должен описывать что тест делает: "should do something"
-- Читабельные названия: `it('should show validation error for invalid email')`
+- Use `describe` for grouping
+- `it` should describe what the test does: "should do something"
+- Readable names: `it('should show validation error for invalid email')`
 
 ### 2. Arrange-Act-Assert (AAA)
 
@@ -129,19 +129,19 @@ it('should update state', () => {
 });
 ```
 
-### 3. Используй `beforeEach` для setup
+### 3. Use `beforeEach` for setup
 
 ```typescript
 describe('MyComponent', () => {
   beforeEach(() => {
-    // Сброс моков, stores, etc.
+    // Reset mocks, stores, etc.
   });
 });
 ```
 
-### 4. Мокирование
+### 4. Mocking
 
-**Мокирование модулей:**
+**Mocking modules:**
 
 ```typescript
 vi.mock('../model/useAuth', () => ({
@@ -149,7 +149,7 @@ vi.mock('../model/useAuth', () => ({
 }));
 ```
 
-**Мокирование функций:**
+**Mocking functions:**
 
 ```typescript
 const mockFn = vi.fn();
@@ -157,7 +157,7 @@ mockFn.mockReturnValue('result');
 mockFn.mockResolvedValue(Promise.resolve('async result'));
 ```
 
-### 5. Async тестирование
+### 5. Async testing
 
 ```typescript
 import { waitFor } from '@testing-library/react';
@@ -171,7 +171,7 @@ it('should load data', async () => {
 });
 ```
 
-## Тестирование React Query
+## Testing React Query
 
 ```typescript
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -200,28 +200,28 @@ it('should fetch data', async () => {
 
 ## Coverage
 
-Цели coverage:
+Coverage targets:
 - **Statements**: ≥80%
 - **Branches**: ≥75%
 - **Functions**: ≥80%
 - **Lines**: ≥80%
 
-Проверка coverage:
+Checking coverage:
 
 ```bash
 npm run test:coverage
 ```
 
-Report будет в `coverage/index.html`.
+The report will be in `coverage/index.html`.
 
-## Что тестировать
+## What to test
 
-### ✅ Обязательно тестировать:
+### ✅ Mandatory to test:
 
 1. **Utilities:**
    - Converters (unit conversions)
    - Formatters (date, number, currency)
-   - Validators (если есть)
+   - Validators (if any)
 
 2. **State Management:**
    - Zustand stores
@@ -238,7 +238,7 @@ Report будет в `coverage/index.html`.
    - Authentication flow
    - Error states
 
-### ❌ Не нужно тестировать:
+### ❌ Not necessary to test:
 
 1. **Third-party libraries:**
    - Radix UI components
@@ -252,18 +252,18 @@ Report будет в `coverage/index.html`.
 3. **Types:**
    - TypeScript types (compile-time check)
 
-## Debugging тестов
+## Debugging tests
 
-### Посмотреть DOM:
+### View the DOM:
 
 ```typescript
 import { screen } from '@testing-library/react';
 
-screen.debug(); // Вывести весь DOM
-screen.debug(screen.getByRole('button')); // Вывести конкретный элемент
+screen.debug(); // Output the entire DOM
+screen.debug(screen.getByRole('button')); // Output a specific element
 ```
 
-### Логирование:
+### Logging:
 
 ```typescript
 console.log('State:', useAuthStore.getState());
@@ -271,11 +271,11 @@ console.log('State:', useAuthStore.getState());
 
 ### Breakpoints:
 
-В VS Code можно ставить breakpoints в тестах и запускать через Debug.
+You can set breakpoints in tests in VS Code and run them via Debug.
 
 ## CI/CD Integration
 
-Добавь в `.github/workflows/test.yml`:
+Add to `.github/workflows/test.yml`:
 
 ```yaml
 name: Test
@@ -295,9 +295,9 @@ jobs:
       - run: npm run test:coverage
 ```
 
-## Примеры тестов
+## Test Examples
 
-Смотри:
+See:
 - `src/shared/lib/utils/__tests__/converters.test.ts`
 - `src/shared/lib/utils/__tests__/formatters.test.ts`
 - `src/app/stores/__tests__/authStore.test.ts`
@@ -306,31 +306,30 @@ jobs:
 
 ## FAQ
 
-### Q: Как тестировать компоненты с React Query?
+### Q: How to test components with React Query?
 
-A: Используй `createTestQueryClient()` и оборачивай в `QueryClientProvider`. См. `src/test/utils.tsx`.
+A: Use `createTestQueryClient()` and wrap in `QueryClientProvider`. See `src/test/utils.tsx`.
 
-### Q: Как мокировать API calls?
+### Q: How to mock API calls?
 
-A: Используй `vi.mock()` для модулей или Mock Service Worker (MSW) для HTTP requests.
+A: Use `vi.mock()` for modules or Mock Service Worker (MSW) for HTTP requests.
 
-### Q: Как тестировать navigation?
+### Q: How to test navigation?
 
-A: Оборачивай в `BrowserRouter` (уже есть в `src/test/utils.tsx`) и используй `useNavigate` мок.
+A: Wrap in `BrowserRouter` (already in `src/test/utils.tsx`) and use a `useNavigate` mock.
 
-### Q: Почему тест падает с "matchMedia is not defined"?
+### Q: Why does the test fail with "matchMedia is not defined"?
 
-A: Проверь `src/test/setup.ts` - там должен быть мок для `matchMedia`.
+A: Check `src/test/setup.ts` - there should be a mock for `matchMedia`.
 
-### Q: Как тестировать error boundaries?
+### Q: How to test error boundaries?
 
-A: Используй `console.error = vi.fn()` чтобы подавить ошибки в консоль.
+A: Use `console.error = vi.fn()` to suppress errors in the console.
 
-## Полезные ссылки
+## Useful Links
 
 - [Vitest Documentation](https://vitest.dev/)
 - [React Testing Library](https://testing-library.com/react)
 - [Testing Library Queries](https://testing-library.com/docs/queries/about)
 - [User Event](https://testing-library.com/docs/user-event/intro)
 - [Jest DOM Matchers](https://github.com/testing-library/jest-dom)
-

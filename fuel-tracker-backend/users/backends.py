@@ -6,11 +6,11 @@ class EmailBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         UserModel = get_user_model()
         try:
-            # В поле username приходит email, так как мы используем его для входа
+            # Email comes in username field since we use it for sign in
             user = UserModel.objects.get(email=username)
         except UserModel.DoesNotExist:
-            # Защита от timing attack: выполняем фиктивную hash операцию
-            # чтобы время ответа было одинаковым для существующих/несуществующих email
+            # Protection against timing attack: perform dummy hash operation
+            # so response time is same for existing/non-existing emails
             make_password(password)
             return None
 

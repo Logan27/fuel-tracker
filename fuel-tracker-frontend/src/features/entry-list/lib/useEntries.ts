@@ -3,7 +3,7 @@ import { fuelEntryApi } from '@/entities/fuel-entry';
 import type { FuelEntryFilters } from '@/entities/fuel-entry';
 
 /**
- * Хук для загрузки списка fuel entries с пагинацией (cursor-based)
+ * Hook for loading fuel entries list with pagination (cursor-based)
  */
 export const useEntries = (filters?: FuelEntryFilters) => {
   return useInfiniteQuery({
@@ -13,8 +13,8 @@ export const useEntries = (filters?: FuelEntryFilters) => {
         ...filters,
         cursor: pageParam,
       }),
-    getNextPageParam: (lastPage) => {
-      // Извлекаем cursor из URL next
+    getnextPageParam: (lastPage) => {
+      // Extract cursor from next URL
       if (!lastPage.next) return undefined;
       try {
         const url = new URL(lastPage.next);
@@ -23,8 +23,8 @@ export const useEntries = (filters?: FuelEntryFilters) => {
         return undefined;
       }
     },
-    getPreviousPageParam: (firstPage) => {
-      // Извлекаем cursor из URL previous
+    getpreviousPageParam: (firstPage) => {
+      // Extract cursor from previous URL
       if (!firstPage.previous) return undefined;
       try {
         const url = new URL(firstPage.previous);

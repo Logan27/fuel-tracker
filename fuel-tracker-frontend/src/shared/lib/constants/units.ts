@@ -1,5 +1,5 @@
 /**
- * Константы единиц измерения
+ * Measurement units constants
  */
 
 export const DISTANCE_UNITS = {

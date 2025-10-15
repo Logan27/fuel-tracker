@@ -2,26 +2,26 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Копируем package files
+# Copy package files
 COPY package*.json ./
 
-# Устанавливаем зависимости
+# Install dependencies
 RUN npm ci
 
-# Копируем конфигурационные файлы (важен порядок для правильного резолва импортов)
+# Copy configuration files (order is important for proper import resolution)
 COPY tsconfig*.json ./
 COPY vite.config.ts ./
 COPY postcss.config.js ./
 COPY tailwind.config.ts ./
 COPY index.html ./
 
-# Копируем исходники
+# Copy source files
 COPY src ./src
 COPY public ./public
 
-# Expose порт для Vite dev server
+# Expose port for Vite dev server
 EXPOSE 3000
 
-# Запускаем dev server
+# Start dev server
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 

@@ -7,7 +7,7 @@ import { ROUTES } from '@/shared/lib/constants';
 import type { SignUpDto, SignInDto } from '../api/authApi';
 
 /**
- * Хук для работы с аутентификацией
+ * Hook for authentication management
  */
 export const useAuth = () => {
   const navigate = useNavigate();
@@ -15,12 +15,12 @@ export const useAuth = () => {
   const { setSettings } = useUserSettingsStore();
   const vehicleStore = useVehicleStore();
 
-  // Мутация для регистрации
+  // Sign up mutation
   const signUpMutation = useMutation({
     mutationFn: (credentials: SignUpDto) => authApi.signUp(credentials),
     onSuccess: (user) => {
       login(user);
-      // Синхронизируем настройки пользователя
+      // Sync user settings
       setSettings({
         display_name: user.display_name,
         preferred_currency: user.preferred_currency,
@@ -37,12 +37,12 @@ export const useAuth = () => {
     },
   });
 
-  // Мутация для входа
+  // Sign in mutation
   const signInMutation = useMutation({
     mutationFn: (credentials: SignInDto) => authApi.signIn(credentials),
     onSuccess: (user) => {
       login(user);
-      // Синхронизируем настройки пользователя
+      // Sync user settings
       setSettings({
         display_name: user.display_name,
         preferred_currency: user.preferred_currency,
@@ -59,11 +59,11 @@ export const useAuth = () => {
     },
   });
 
-  // Мутация для выхода
+  // Sign out mutation
   const signOutMutation = useMutation({
     mutationFn: () => authApi.signOut(),
     onSuccess: () => {
-      // Очищаем все stores
+      // Clear all stores
       logoutStore();
       vehicleStore.setVehicles([]);
       vehicleStore.setSelectedVehicleId(null);
@@ -71,7 +71,7 @@ export const useAuth = () => {
       navigate(ROUTES.AUTH, { replace: true });
     },
     onError: (error: Error) => {
-      // Даже если запрос failed, очищаем локальное состояние
+      // Even if request failed, clear local state
       logoutStore();
       vehicleStore.setVehicles([]);
       vehicleStore.setSelectedVehicleId(null);

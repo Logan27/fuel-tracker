@@ -14,14 +14,14 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'username', 'email')
 
 class UserUpdateSerializer(serializers.ModelSerializer):
-    """Сериализатор для обновления профиля пользователя (PATCH)"""
+    """Serializer for updating user profile (PATCH)"""
     display_name = serializers.CharField(required=False, allow_blank=True, max_length=100)
     price_precision = serializers.IntegerField(required=False, min_value=2, max_value=3)
     
     class Meta:
         model = User
         fields = ('display_name', 'preferred_currency', 'preferred_distance_unit', 'preferred_volume_unit', 'timezone', 'price_precision')
-        # Все поля опциональны при обновлении
+        # All fields are optional when updating
 
 class UserSignUpResponseSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,8 +36,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
         """
-        Проверка уникальности email.
-        Сообщение об ошибке не раскрывает существование email (anti-enumeration).
+        Check email uniqueness.
+        Error message does not reveal email existence (anti-enumeration).
         """
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError(
@@ -46,7 +46,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
-        # Применяем стандартные валидаторы Django к паролю
+        # Apply standard Django validators to password
         password = data.get('password')
         validate_password(password)
         return super().validate(data)
@@ -64,7 +64,7 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        # EmailBackend ожидает username (а не email) как параметр
+        # EmailBackend expects username (not email) as parameter
         user = authenticate(username=data.get('email'), password=data.get('password'))
         if user and user.is_active:
             return {'user': user}

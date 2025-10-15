@@ -1,73 +1,139 @@
-# Welcome to your Lovable project
+# Fuel Tracker Frontend
 
-## Project info
+> **🏆 Built during a 1-day DataArt hackathon** - This frontend application was developed as part of a 24-hour coding challenge, demonstrating rapid prototyping and modern React development capabilities.
 
-**URL**: https://lovable.dev/projects/0dfb6bf7-1849-49e8-bac6-878c0b52a3f4
+React frontend for the Fuel Tracker application - an MVP for tracking vehicle fuel consumption.
 
-## How can I edit this code?
+## 🚀 Features
 
-There are several ways of editing your application.
+- ⛽ **Fuel Entry Management** - Create, edit, and delete fuel entries
+- 🚗 **Vehicle Management** - Manage multiple vehicles
+- 📊 **Dashboard Analytics** - Real-time consumption and cost metrics
+- 📈 **Statistics & Charts** - Brand and grade comparison tables
+- 🔒 **Authentication** - Secure login/logout with session management
+- 🌍 **Unit Conversion** - Support for metric and imperial systems
 
-**Use Lovable**
+## 🛠️ Technology Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/0dfb6bf7-1849-49e8-bac6-878c0b52a3f4) and start prompting.
+- **React 18** + **TypeScript**
+- **Vite** - Build tool and dev server
+- **Zustand** - State management
+- **TanStack Query** - Server state management
+- **React Hook Form** + **Zod** - Form handling and validation
+- **shadcn/ui** - UI component library
+- **Tailwind CSS** - Styling
+- **React Router** - Client-side routing
 
-Changes made via Lovable will be committed automatically to this repo.
+## 📦 Quick Start
 
-**Use your preferred IDE**
+### Prerequisites
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- Node.js 18+ and npm
+- Backend API running on http://localhost:8000
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Installation
 
-Follow these steps:
+```bash
+# Install dependencies
+npm install
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at http://localhost:3000
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Available Scripts
 
-**Use GitHub Codespaces**
+```bash
+# Development
+npm run dev          # Start dev server
+npm run build        # Production build
+npm run preview      # Preview production build
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Testing
+npm run test         # Run tests
+npm run test:ui      # Run tests with UI
+npm run test:coverage # Run tests with coverage
 
-## What technologies are used for this project?
+# Linting
+npm run lint         # Run ESLint
+```
 
-This project is built with:
+## 🏗️ Architecture
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+This project follows **Feature-Sliced Design (FSD)** architecture:
 
-## How can I deploy this project?
+```
+src/
+├── app/              # Application layer
+│   ├── providers/    # Global providers
+│   ├── router/       # Routing configuration
+│   └── stores/       # Global state stores
+├── pages/            # Page components
+├── features/         # Feature modules
+│   ├── auth/         # Authentication
+│   ├── vehicles/     # Vehicle management
+│   └── fuel-entries/ # Fuel entry management
+├── entities/         # Business entities
+├── shared/           # Shared utilities
+│   ├── ui/           # UI components
+│   ├── api/          # API client
+│   └── lib/          # Utilities
+└── widgets/          # Composite components
+```
 
-Simply open [Lovable](https://lovable.dev/projects/0dfb6bf7-1849-49e8-bac6-878c0b52a3f4) and click on Share -> Publish.
+## 🔧 Development
 
-## Can I connect a custom domain to my Lovable project?
+### State Management
 
-Yes, you can!
+- **Zustand** for global state (auth, vehicles, settings)
+- **TanStack Query** for server state and caching
+- **React Hook Form** for form state
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### API Integration
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+All API calls are handled through TanStack Query with automatic caching, background updates, and error handling.
+
+### Styling
+
+- **Tailwind CSS** for utility-first styling
+- **shadcn/ui** components for consistent design
+- **CSS Modules** for component-specific styles
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+npm run test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+## 📱 Responsive Design
+
+The application is fully responsive and works on:
+- Desktop (1024px+)
+- Tablet (768px - 1023px)
+- Mobile (320px - 767px)
+
+## 🌐 Browser Support
+
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+## 📝 License
+
+This project was created for demonstration purposes during a DataArt hackathon.
+
+## 👤 Author
+
+Anton Utorov
+- Email: anton.utorov@gmail.com
+- GitHub: [@Logan27](https://github.com/Logan27)

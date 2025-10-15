@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Схема для создания/редактирования записи о заправке
+ * Schema for creating/editing fuel entry
  */
 export const entrySchema = z.object({
   vehicle_id: z.number().int().positive('Vehicle is required'),
@@ -50,12 +50,12 @@ export const entrySchema = z.object({
 });
 
 /**
- * Тип данных формы записи о заправке
+ * Fuel entry form data type
  */
 export type EntryFormData = z.infer<typeof entrySchema>;
 
 /**
- * Дефолтные значения для формы
+ * Default values for form
  */
 export const defaultEntryValues: Partial<EntryFormData> = {
   entry_date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD
@@ -66,7 +66,7 @@ export const defaultEntryValues: Partial<EntryFormData> = {
 };
 
 /**
- * Общие fuel brands для автокомплита
+ * Common fuel brands for autocomplete
  */
 export const COMMON_FUEL_BRANDS = [
   'Shell',
@@ -82,7 +82,7 @@ export const COMMON_FUEL_BRANDS = [
 ] as const;
 
 /**
- * Общие fuel grades
+ * Common fuel grades
  */
 export const COMMON_FUEL_GRADES = [
   'Regular (87)',

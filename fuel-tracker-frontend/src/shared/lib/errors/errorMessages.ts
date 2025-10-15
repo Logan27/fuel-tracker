@@ -6,13 +6,13 @@ export const ERROR_MESSAGES = {
   // Authentication errors
   AUTH_UNAUTHORIZED: 'You need to sign in to access this page.',
   AUTH_FORBIDDEN: 'You do not have permission to access this resource.',
-  AUTH_SESSION_EXPIRED: 'Your session has expired. Please sign in again.',
+  AUTH_session_EXPIRED: 'Your session has expired. Please sign in again.',
   AUTH_INVALID_CREDENTIALS: 'Invalid email or password.',
   
   // Validation errors
   VALIDATION_ERROR: 'Please check your input and try again.',
   REQUIRED_FIELD: 'This field is required.',
-  INVALID_EMAIL: 'Please enter a valid email address.',
+  INVALID_email: 'Please enter a valid email address.',
   INVALID_DATE: 'Please enter a valid date.',
   
   // Resource errors

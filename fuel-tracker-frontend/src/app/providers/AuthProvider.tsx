@@ -7,21 +7,21 @@ interface AuthProviderProps {
 }
 
 /**
- * AuthProvider проверяет сессию при загрузке приложения
- * и синхронизирует состояние аутентификации
+ * AuthProvider checks session on app load
+ * and synchronizes authentication state
  */
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { setUser, setLoading } = useAuthStore();
   const { setSettings } = useUserSettingsStore();
 
   useEffect(() => {
-    const checkSession = async () => {
+    const checksession = async () => {
       setLoading(true);
       try {
         const user = await userApi.getMe();
         setUser(user);
-        // Всегда синхронизируем настройки пользователя из БД
-        // Это гарантирует, что изменения настроек всегда отражаются
+        // Always sync user settings from DB
+        // This ensures settings changes are always reflected
         setSettings({
           display_name: user.display_name,
           preferred_currency: user.preferred_currency,
@@ -31,15 +31,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           price_precision: user.price_precision,
         });
       } catch (error) {
-        // Если сессия невалидна, очищаем состояние
+        // If session is invalid, clear state
         setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
-    checkSession();
-  }, []); // Запускаем только при монтировании
+    checksession();
+  }, []); // Run only on mount
 
   return <>{children}</>;
 };

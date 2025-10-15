@@ -27,19 +27,19 @@ export const SettingsForm = () => {
 
   const handleCurrencyChange = (currency: string) => {
     setCurrency(currency);
-    // Немедленно сохраняем изменения на сервер
+    // Immediately save changes to server
     updateSettings({ preferred_currency: currency });
   };
 
   const handleDistanceUnitChange = (unit: 'km' | 'mi') => {
     setDistanceUnit(unit);
-    // Немедленно сохраняем изменения на сервер
+    // Immediately save changes to server
     updateSettings({ preferred_distance_unit: unit });
   };
 
   const handleVolumeUnitChange = (unit: 'L' | 'gal') => {
     setVolumeUnit(unit);
-    // Немедленно сохраняем изменения на сервер
+    // Immediately save changes to server
     updateSettings({ preferred_volume_unit: unit });
   };
   

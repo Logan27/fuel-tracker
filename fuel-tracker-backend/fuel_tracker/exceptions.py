@@ -1,7 +1,7 @@
 """
-Кастомный обработчик исключений для DRF.
+Custom exception handler for DRF.
 
-Обеспечивает единообразный формат ответов для всех ошибок.
+Provides consistent response format for all errors.
 """
 import logging
 from rest_framework.views import exception_handler as drf_exception_handler
@@ -14,43 +14,43 @@ logger = logging.getLogger(__name__)
 
 def custom_exception_handler(exc, context):
     """
-    Кастомный обработчик исключений для стандартизированного формата ответов.
+    Custom exception handler for standardized response format.
     
-    Формат ответа:
+    Response format:
     {
         "errors": [
             {
                 "status": "400",
                 "code": "validation_error",
-                "detail": "Описание ошибки"
+                "detail": "Error description"
             }
         ]
     }
     
     Args:
-        exc: Исключение
-        context: Контекст запроса
-    
-    Returns:
-        Response с стандартизированным форматом ошибки
+        exc: Exception
+        context: Request context
+        
+        Returns:
+        Response with standardized error format
     """
-    # Получаем стандартный ответ от DRF
+    # Get standard response from DRF
     response = drf_exception_handler(exc, context)
     
-    # Извлекаем correlation_id из request (если есть)
+    # Extract correlation_id from request (if exists)
     request = context.get('request')
     correlation_id = getattr(request, 'correlation_id', 'N/A') if request else 'N/A'
     
-    # Если DRF обработал исключение
+    # If DRF handled exception
     if response is not None:
-        # Логируем ошибку
+        # Log error
         logger.error(
             f"[{correlation_id}] Exception handled: {exc.__class__.__name__} | "
             f"Status: {response.status_code} | "
             f"Detail: {str(exc)}"
         )
         
-        # Преобразуем в стандартный формат
+        # Convert to standard format
         standardized_response = standardize_error_response(
             response.status_code,
             response.data,
@@ -60,7 +60,7 @@ def custom_exception_handler(exc, context):
         response.data = standardized_response
         return response
     
-    # Обработка Django исключений, которые DRF не обработал
+    # Handle Django exceptions that DRF did not handle
     if isinstance(exc, Http404):
         logger.error(f"[{correlation_id}] 404 Not Found: {str(exc)}")
         return create_error_response(
@@ -85,13 +85,13 @@ def custom_exception_handler(exc, context):
             detail=str(exc)
         )
     
-    # Необработанные исключения (500)
+    # Unhandled exceptions (500)
     logger.exception(
         f"[{correlation_id}] Unhandled exception: {exc.__class__.__name__} | "
         f"Detail: {str(exc)}"
     )
     
-    # В production не раскрываем детали внутренних ошибок
+    # In production do not reveal internal error details
     from django.conf import settings
     if settings.DEBUG:
         detail = f"{exc.__class__.__name__}: {str(exc)}"
@@ -107,31 +107,31 @@ def custom_exception_handler(exc, context):
 
 def standardize_error_response(status_code, data, exc):
     """
-    Преобразует ответ DRF в стандартизированный формат.
+    Convert DRF response to standardized format.
     
     Args:
-        status_code: HTTP статус код
-        data: Данные ошибки от DRF
-        exc: Исключение
+        status_code: HTTP status code
+        data: Error data from DRF
+        exc: Exception
     
     Returns:
-        dict: Стандартизированный формат ошибки
+        dict: Standardized error format
     """
     errors = []
     
-    # Определяем error_code на основе типа исключения
+    # Determine error_code based on exception type
     error_code = get_error_code(exc)
     
-    # Обрабатываем различные форматы данных от DRF
+    # Handle different data formats from DRF
     if isinstance(data, dict):
-        # Если есть поле detail - это простая ошибка
+        # If there is detail field - this is simple error
         if 'detail' in data:
             errors.append({
                 'status': str(status_code),
                 'code': error_code,
                 'detail': data['detail']
             })
-        # Иначе это ошибки валидации полей
+        # Otherwise these are field validation errors
         else:
             for field, messages in data.items():
                 if isinstance(messages, list):
@@ -168,15 +168,15 @@ def standardize_error_response(status_code, data, exc):
 
 def create_error_response(status_code, error_code, detail):
     """
-    Создаёт Response с стандартизированным форматом ошибки.
+    Create Response with standardized error format.
     
     Args:
-        status_code: HTTP статус код
-        error_code: Машиночитаемый код ошибки
-        detail: Человекочитаемое описание
+        status_code: HTTP status code
+        error_code: Machine-readable error code
+        detail: Human-readable description
     
     Returns:
-        Response с форматированной ошибкой
+        Response with formatted error
     """
     from rest_framework.response import Response
     
@@ -194,13 +194,13 @@ def create_error_response(status_code, error_code, detail):
 
 def get_error_code(exc):
     """
-    Определяет машиночитаемый код ошибки на основе типа исключения.
+    Determine machine-readable error code based on exception type.
     
     Args:
-        exc: Исключение
+        exc: Exception
     
     Returns:
-        str: Код ошибки
+        str: Error code
     """
     from rest_framework.exceptions import (
         ValidationError, AuthenticationFailed, NotAuthenticated,

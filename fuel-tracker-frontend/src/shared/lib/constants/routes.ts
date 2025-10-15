@@ -1,5 +1,5 @@
 /**
- * Константы маршрутов приложения
+ * Application route constants
  */
 
 export const ROUTES = {
@@ -17,7 +17,7 @@ export const ROUTES = {
 } as const;
 
 /**
- * Публичные маршруты (не требуют аутентификации)
+ * Public routes (no authentication required)
  */
 export const PUBLIC_ROUTES = [
   ROUTES.HOME,
@@ -27,7 +27,7 @@ export const PUBLIC_ROUTES = [
 ] as const;
 
 /**
- * Защищённые маршруты (требуют аутентификации)
+ * Protected routes (require authentication)
  */
 export const PROTECTED_ROUTES = [
   ROUTES.DASHBOARD,
@@ -39,11 +39,11 @@ export const PROTECTED_ROUTES = [
 ] as const;
 
 /**
- * Дефолтный маршрут после логина
+ * Default route after login
  */
 export const DEFAULT_PROTECTED_ROUTE = ROUTES.DASHBOARD;
 
 /**
- * Дефолтный маршрут для неавторизованных пользователей
+ * Default route for unauthenticated users
  */
 export const DEFAULT_PUBLIC_ROUTE = ROUTES.AUTH;

@@ -45,6 +45,7 @@ export const VehicleForm = ({
           make: vehicle.make || '',
           model: vehicle.model || '',
           year: vehicle.year || null,
+          initial_odometer: vehicle.initial_odometer || 0,
           fuel_type: vehicle.fuel_type || '',
           is_active: vehicle.is_active,
         }
@@ -122,54 +123,29 @@ export const VehicleForm = ({
             control={form.control}
             name="year"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Year</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="e.g., 2020"
-                    disabled={isLoading}
-                    {...field}
-                    value={field.value || ''}
-                    onChange={(e) =>
-                      field.onChange(e.target.value ? parseInt(e.target.value) : null)
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="fuel_type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Fuel Type</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  disabled={isLoading}
-                >
+                <FormItem>
+                  <FormLabel>Year</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select fuel type" />
-                    </SelectTrigger>
+                    <Input type="number" placeholder="e.g., 2023" {...field} />
                   </FormControl>
-                  <SelectContent>
-                    {FUEL_TYPES.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="initial_odometer"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Initial Odometer (km)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="e.g., 10000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
         <FormField
           control={form.control}

@@ -11,8 +11,8 @@ interface EntryListProps {
   entries: FuelEntry[];
   vehicles: Vehicle[];
   isLoading?: boolean;
-  isFetchingNextPage?: boolean;
-  hasNextPage?: boolean;
+  isFetchingnextPage?: boolean;
+  hasnextPage?: boolean;
   onLoadMore?: () => void;
   onEdit?: (entry: FuelEntry) => void;
   onDelete?: (entry: FuelEntry) => void;
@@ -24,8 +24,8 @@ export const EntryList = ({
   entries,
   vehicles,
   isLoading = false,
-  isFetchingNextPage = false,
-  hasNextPage = false,
+  isFetchingnextPage = false,
+  hasnextPage = false,
   onLoadMore,
   onEdit,
   onDelete,
@@ -38,7 +38,7 @@ export const EntryList = ({
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage && onLoadMore) {
+        if (entries[0].isIntersecting && hasnextPage && !isFetchingnextPage && onLoadMore) {
           onLoadMore();
         }
       },
@@ -55,7 +55,7 @@ export const EntryList = ({
         observer.unobserve(currentTarget);
       }
     };
-  }, [hasNextPage, isFetchingNextPage, onLoadMore]);
+  }, [hasnextPage, isFetchingnextPage, onLoadMore]);
 
 
   if (isLoading) {
@@ -78,9 +78,9 @@ export const EntryList = ({
       />
 
       {/* Infinite scroll trigger */}
-      {hasNextPage && (
+      {hasnextPage && (
         <div ref={observerTarget} className="flex justify-center py-4">
-          {isFetchingNextPage ? (
+          {isFetchingnextPage ? (
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           ) : (
             <Button variant="outline" onClick={onLoadMore}>

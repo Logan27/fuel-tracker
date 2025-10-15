@@ -1,111 +1,111 @@
 # OpenAPI (Swagger) Documentation Guide
 
-## Доступ к документации API
+## Accessing the API Documentation
 
-После запуска проекта (`docker-compose up` или локально) документация доступна по следующим адресам:
+After starting the project (`docker-compose up` or locally), the documentation is available at the following addresses:
 
-### Swagger UI (интерактивная документация)
+### Swagger UI (interactive documentation)
 ```
 http://localhost:8000/api/v1/schema/swagger-ui/
 ```
 
-Swagger UI предоставляет:
-- Интерактивный интерфейс для тестирования API
-- Полное описание всех эндпоинтов
-- Возможность выполнять запросы прямо из браузера
-- Примеры запросов и ответов
+Swagger UI provides:
+- An interactive interface for testing the API
+- A complete description of all endpoints
+- The ability to execute requests directly from the browser
+- Examples of requests and responses
 
-### ReDoc (альтернативный просмотр)
+### ReDoc (alternative view)
 ```
 http://localhost:8000/api/v1/schema/redoc/
 ```
 
-ReDoc предоставляет:
-- Более компактное отображение документации
-- Удобную навигацию по разделам
-- Поиск по документации
+ReDoc provides:
+- A more compact display of the documentation
+- Convenient navigation through sections
+- Search within the documentation
 
 ### OpenAPI Schema (YAML)
 ```
 http://localhost:8000/api/v1/schema/
 ```
 
-Возвращает сырую OpenAPI 3.0 схему в YAML формате, которую можно:
-- Импортировать в Postman
-- Использовать для генерации клиентского кода
-- Интегрировать с другими инструментами
+Returns the raw OpenAPI 3.0 schema in YAML format, which can be:
+- Imported into Postman
+- Used to generate client code
+- Integrated with other tools
 
-## Генерация схемы в файл
+## Generating the schema to a file
 
-Для генерации OpenAPI схемы в файл:
+To generate the OpenAPI schema to a file:
 
 ```bash
 python manage.py spectacular --color --file schema.yml
 ```
 
-Или из виртуального окружения:
+Or from a virtual environment:
 
 ```bash
 .\venv\Scripts\python.exe manage.py spectacular --color --file schema.yml
 ```
 
-## Структура API документации
+## API Documentation Structure
 
-API разделён на следующие группы (tags):
+The API is divided into the following groups (tags):
 
 ### 1. Authentication
-- `POST /api/v1/auth/signup` - Регистрация нового пользователя
-- `POST /api/v1/auth/signin` - Вход в систему
-- `POST /api/v1/auth/signout` - Выход из системы
+- `POST /api/v1/auth/signup` - Register a new user
+- `POST /api/v1/auth/signin` - Sign in
+- `POST /api/v1/auth/signout` - Sign out
 
 ### 2. Users
-- `GET /api/v1/users/me` - Получить профиль пользователя
-- `PATCH /api/v1/users/me` - Обновить профиль пользователя
-- `GET /api/v1/users/me/export` - Экспорт данных (GDPR)
-- `DELETE /api/v1/users/me` - Удаление аккаунта (GDPR)
+- `GET /api/v1/users/me` - Get user profile
+- `PATCH /api/v1/users/me` - Update user profile
+- `GET /api/v1/users/me/export` - Export data (GDPR)
+- `DELETE /api/v1/users/me` - Delete account (GDPR)
 
 ### 3. Vehicles
-- `GET /api/v1/vehicles` - Список автомобилей
-- `POST /api/v1/vehicles` - Создать автомобиль
-- `GET /api/v1/vehicles/{id}` - Получить детали автомобиля
-- `PATCH /api/v1/vehicles/{id}` - Обновить автомобиль
-- `DELETE /api/v1/vehicles/{id}` - Удалить автомобиль
+- `GET /api/v1/vehicles` - List vehicles
+- `POST /api/v1/vehicles` - Create a vehicle
+- `GET /api/v1/vehicles/{id}` - Get vehicle details
+- `PATCH /api/v1/vehicles/{id}` - Update a vehicle
+- `DELETE /api/v1/vehicles/{id}` - Delete a vehicle
 
 ### 4. Fuel Entries
-- `GET /api/v1/fuel-entries` - Список заправок (с пагинацией)
-- `POST /api/v1/fuel-entries` - Создать запись о заправке
-- `GET /api/v1/fuel-entries/{id}` - Получить детали заправки
-- `PATCH /api/v1/fuel-entries/{id}` - Обновить заправку
-- `DELETE /api/v1/fuel-entries/{id}` - Удалить заправку
+- `GET /api/v1/fuel-entries` - List fuel entries (with pagination)
+- `POST /api/v1/fuel-entries` - Create a fuel entry
+- `GET /api/v1/fuel-entries/{id}` - Get fuel entry details
+- `PATCH /api/v1/fuel-entries/{id}` - Update a fuel entry
+- `DELETE /api/v1/fuel-entries/{id}` - Delete a fuel entry
 
 ### 5. Statistics
-- `GET /api/v1/statistics/dashboard` - Статистика дашборда
+- `GET /api/v1/statistics/dashboard` - Dashboard statistics
 
-## Использование Swagger UI
+## Using Swagger UI
 
-### Аутентификация
+### Authentication
 
-API использует сессионную аутентификацию. Для тестирования через Swagger UI:
+The API uses session-based authentication. To test via Swagger UI:
 
-1. Откройте Swagger UI: `http://localhost:8000/api/v1/schema/swagger-ui/`
-2. Найдите эндпоинт **Authentication → Sign in**
-3. Нажмите "Try it out"
-4. Введите email и password
-5. Нажмите "Execute"
-6. После успешного входа cookie сессии будет сохранён в браузере
-7. Теперь можно выполнять запросы к защищённым эндпоинтам
+1. Open Swagger UI: `http://localhost:8000/api/v1/schema/swagger-ui/`
+2. Find the **Authentication → Sign in** endpoint
+3. Click "Try it out"
+4. Enter email and password
+5. Click "Execute"
+6. After a successful login, the session cookie will be saved in the browser
+7. Now you can make requests to protected endpoints
 
-### Тестирование эндпоинтов
+### Testing Endpoints
 
-1. Выберите нужный эндпоинт
-2. Нажмите "Try it out"
-3. Заполните параметры запроса (query, body)
-4. Нажмите "Execute"
-5. Просмотрите ответ в разделе "Responses"
+1. Select the desired endpoint
+2. Click "Try it out"
+3. Fill in the request parameters (query, body)
+4. Click "Execute"
+5. View the response in the "Responses" section
 
-### Примеры использования
+### Usage Examples
 
-#### Создание автомобиля
+#### Create a vehicle
 ```
 POST /api/v1/vehicles
 Content-Type: application/json
@@ -119,7 +119,7 @@ Content-Type: application/json
 }
 ```
 
-#### Создание записи о заправке
+#### Create a fuel entry
 ```
 POST /api/v1/fuel-entries
 Content-Type: application/json
@@ -137,22 +137,22 @@ Content-Type: application/json
 }
 ```
 
-#### Получение статистики
+#### Get statistics
 ```
 GET /api/v1/statistics/dashboard?period=30d&vehicle=1
 ```
 
-## Импорт в Postman
+## Importing into Postman
 
-1. Скачайте схему: `http://localhost:8000/api/v1/schema/`
-2. Откройте Postman
+1. Download the schema: `http://localhost:8000/api/v1/schema/`
+2. Open Postman
 3. File → Import
-4. Выберите скачанный файл `schema.yml`
-5. Postman автоматически создаст коллекцию со всеми эндпоинтами
+4. Select the downloaded `schema.yml` file
+5. Postman will automatically create a collection with all endpoints
 
-## Настройка drf-spectacular
+## Configuring drf-spectacular
 
-Настройки находятся в `fuel_tracker/settings.py`:
+The settings are located in `fuel_tracker/settings.py`:
 
 ```python
 SPECTACULAR_SETTINGS = {
@@ -160,13 +160,13 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': '...',
     'VERSION': '1.0.0',
     'TAGS': [...],
-    # Другие настройки
+    # Other settings
 }
 ```
 
-## Добавление документации к новым эндпоинтам
+## Adding documentation to new endpoints
 
-### Для ViewSets
+### For ViewSets
 
 ```python
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -186,7 +186,7 @@ class MyViewSet(viewsets.ModelViewSet):
     ...
 ```
 
-### Для function-based views
+### For function-based views
 
 ```python
 from drf_spectacular.utils import extend_schema, OpenApiParameter
@@ -210,9 +210,8 @@ def my_view(request):
     ...
 ```
 
-## Полезные ссылки
+## Useful Links
 
-- [drf-spectacular документация](https://drf-spectacular.readthedocs.io/)
+- [drf-spectacular documentation](https://drf-spectacular.readthedocs.io/)
 - [OpenAPI Specification](https://swagger.io/specification/)
-- [Swagger Editor](https://editor.swagger.io/) - для редактирования схемы
-
+- [Swagger Editor](https://editor.swagger.io/) - for editing the schema

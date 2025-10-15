@@ -9,15 +9,15 @@ from .views import (
     grade_statistics
 )
 
-# Роутер для автоматического создания URL для ViewSets
-# trailing_slash=False для совместимости с фронтендом (REST API стандарт)
+# Router for automatic URL creation for ViewSets
+# trailing_slash=False for frontend compatibility (REST API standard)
 router = DefaultRouter(trailing_slash=False)
 router.register(r'vehicles', VehicleViewSet, basename='vehicle')
 router.register(r'fuel-entries', FuelEntryViewSet, basename='fuelentry')
 
 urlpatterns = [
     path('auth/', include('users.urls')),
-    path('users/', include('users.urls')),  # Для /api/v1/users/me
+    path('users/', include('users.urls')),  # For /api/v1/users/me
     # Statistics
     path('statistics/dashboard', dashboard_statistics, name='dashboard-statistics'),
     path('statistics/by-brand', brand_statistics, name='brand-statistics'),

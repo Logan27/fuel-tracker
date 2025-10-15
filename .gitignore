@@ -10,6 +10,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+CLAUDE.md
+Gemini.md
+.claude/
+.gemini/
+.cursor/
+.kilocode/
+
 # C extensions
 *.so
 

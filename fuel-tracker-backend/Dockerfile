@@ -1,24 +1,24 @@
 FROM python:3.11-slim
 
-# Устанавливаем curl для healthcheck
+# Install curl for healthcheck
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Рабочая директория
+# Working directory
 WORKDIR /app
 
-# Копируем requirements и устанавливаем зависимости
+# Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем весь проект
+# Copy the entire project
 COPY . .
 
-# Создаём директорию для логов
+# Create a directory for logs
 RUN mkdir -p /app/logs
 
-# Expose порт
+# Expose port
 EXPOSE 8000
 
-# Команда по умолчанию (можно переопределить в docker-compose.yml)
+# Default command (can be overridden in docker-compose.yml)
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 

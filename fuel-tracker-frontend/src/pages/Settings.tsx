@@ -21,7 +21,7 @@ const Settings = () => {
           <CardContent>
             <div className="space-y-2">
               <div>
-                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="text-sm text-muted-foreground">email</p>
                 <p className="text-base font-medium">{user?.email || 'Not logged in'}</p>
               </div>
             </div>

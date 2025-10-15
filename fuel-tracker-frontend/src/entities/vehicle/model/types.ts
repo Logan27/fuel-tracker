@@ -5,6 +5,7 @@ export interface Vehicle {
   make?: string;
   model?: string;
   year?: number;
+  initial_odometer: number;
   fuel_type?: string;
   is_active: boolean;
   created_at: string;

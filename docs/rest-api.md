@@ -1,28 +1,28 @@
 # REST API Documentation – Fuel Tracker Backend (v1)
 
-## Общие сведения
+## General Information
 
-**Базовый URL:** `/api/v1/`
+**Base URL:** `/api/v1/`
 
-**Формат данных:** JSON
+**Data Format:** JSON
 
-**Аутентификация:** Сессионная (`HttpOnly` cookie с CSRF-токеном)
+**Authentication:** Session-based (`HttpOnly` cookie with CSRF token)
 
-**Кодировка:** UTF-8
+**Encoding:** UTF-8
 
-**Временные зоны:** Все даты и времена передаются и хранятся в UTC.
-
----
-
-## Аутентификация
-
-Для аутентифицированных запросов клиент должен отправлять cookie сессии, полученные при логине. Для `POST/PATCH/DELETE` запросов также требуется `X-CSRFToken` заголовок.
+**Timezones:** All dates and times are transmitted and stored in UTC.
 
 ---
 
-## Формат ошибок
+## Authentication
 
-Все ошибки (4xx, 5xx) возвращаются в стандартизированном формате для обеспечения консистентности.
+For authenticated requests, the client must send the session cookie obtained upon login. For `POST/PATCH/DELETE` requests, an `X-CSRFToken` header is also required.
+
+---
+
+## Error Format
+
+All errors (4xx, 5xx) are returned in a standardized format for consistency.
 
 ```json
 {
@@ -35,19 +35,19 @@
   ]
 }
 ```
-*   **status**: HTTP-статус код.
-*   **code**: Машиночитаемый код ошибки.
-*   **detail**: Человекочитаемое описание ошибки.
+*   **status**: HTTP status code.
+*   **code**: Machine-readable error code.
+*   **detail**: Human-readable error description.
 
 ---
 
 ## 1. Authentication
 
-### 1.1. Sign Up (Регистрация)
+### 1.1. Sign Up
 
 **Endpoint:** `POST /api/v1/auth/signup`
 
-**Аутентификация:** Не требуется
+**Authentication:** Not required
 
 **Request Body:**
 ```json
@@ -65,11 +65,11 @@
 }
 ```
 
-### 1.2. Sign In (Вход)
+### 1.2. Sign In
 
 **Endpoint:** `POST /api/v1/auth/signin`
 
-**Аутентификация:** Не требуется
+**Authentication:** Not required
 
 **Request Body:**
 ```json
@@ -79,25 +79,25 @@
 }
 ```
 
-**Success Response (200 OK):** Профиль пользователя (см. 2.1). Устанавливает `sessionid` cookie.
+**Success Response (200 OK):** User profile (see 2.1). Sets `sessionid` cookie.
 
-### 1.3. Sign Out (Выход)
+### 1.3. Sign Out
 
 **Endpoint:** `POST /api/v1/auth/signout`
 
-**Аутентификация:** Требуется
+**Authentication:** Required
 
-**Success Response (204 No Content):** Тело ответа пустое. Сессия завершается.
+**Success Response (204 No Content):** Empty response body. The session is terminated.
 
 ---
 
 ## 2. User Profile & GDPR
 
-### 2.1. Get User Profile (Получить профиль)
+### 2.1. Get User Profile
 
 **Endpoint:** `GET /api/v1/users/me`
 
-**Аутентификация:** Требуется
+**Authentication:** Required
 
 **Success Response (200 OK):**
 ```json
@@ -111,13 +111,13 @@
 }
 ```
 
-### 2.2. Update User Profile (Обновить профиль)
+### 2.2. Update User Profile
 
 **Endpoint:** `PATCH /api/v1/users/me`
 
-**Аутентификация:** Требуется
+**Authentication:** Required
 
-**Request Body:** (Все поля опциональны)
+**Request Body:** (All fields are optional)
 ```json
 {
   "preferred_currency": "EUR",
@@ -125,59 +125,59 @@
 }
 ```
 
-**Success Response (200 OK):** Обновленный профиль пользователя.
+**Success Response (200 OK):** Updated user profile.
 
-### 2.3. **(GDPR)** Export User Data (Экспорт данных)
+### 2.3. **(GDPR)** Export User Data
 
 **Endpoint:** `GET /api/v1/users/me/export`
 
-**Аутентификация:** Требуется
+**Authentication:** Required
 
 **Success Response (200 OK):**
 - `Content-Type: text/csv`
 - `Content-Disposition: attachment; filename="export.csv"`
-- Тело ответа: CSV файл со всеми данными пользователя (автомобили, записи о заправках).
+- Response body: CSV file with all user data (vehicles, fuel entries).
 
-### 2.4. **(GDPR)** Delete Account (Удаление аккаунта)
+### 2.4. **(GDPR)** Delete Account
 
 **Endpoint:** `DELETE /api/v1/users/me`
 
-**Аутентификация:** Требуется
+**Authentication:** Required
 
-**Success Response (204 No Content):** Тело ответа пустое. Все данные пользователя и связанные с ними записи безвозвратно удаляются.
+**Success Response (204 No Content):** Empty response body. All user data and associated records are permanently deleted.
 
 ---
 
 ## 3. Vehicles
 
-Реализует стандартные CRUD операции для автомобилей.
+Implements standard CRUD operations for vehicles.
 
-- `GET /api/v1/vehicles` - Список автомобилей
-- `POST /api/v1/vehicles` - Создать автомобиль
-- `GET /api/v1/vehicles/{id}` - Получить детали
-- `PATCH /api/v1/vehicles/{id}` - Обновить
-- `DELETE /api/v1/vehicles/{id}` - Удалить
+- `GET /api/v1/vehicles` - List vehicles
+- `POST /api/v1/vehicles` - Create vehicle
+- `GET /api/v1/vehicles/{id}` - Get details
+- `PATCH /api/v1/vehicles/{id}` - Update
+- `DELETE /api/v1/vehicles/{id}` - Delete
 
 ---
 
 ## 4. Fuel Entries
 
-### 4.1. List Fuel Entries (Список заправок)
+### 4.1. List Fuel Entries
 
 **Endpoint:** `GET /api/v1/fuel-entries`
 
-**Аутентификация:** Требуется
+**Authentication:** Required
 
-**Пагинация:** `CursorPagination`
+**Pagination:** `CursorPagination`
 
 **Query Parameters:**
-| Параметр | Тип | Описание |
+| Parameter | Type | Description |
 |----------|-----|----------|
-| `limit` | integer | Количество записей (по умолчанию 25) |
-| `cursor` | string | Курсор для следующей/предыдущей страницы |
-| `vehicle`| integer | Фильтр по ID автомобиля |
-| `date_after` | string (ISO date) | Начало диапазона дат |
-| `date_before` | string (ISO date) | Конец диапазона дат |
+| `limit` | integer | Number of records (default 25) |
+| `cursor` | string | Cursor for the next/previous page |
+| `vehicle`| integer | Filter by vehicle ID |
+| `date_after` | string (ISO date) | Start of the date range |
+| `date_before` | string (ISO date) | End of the date range |
 
 **Success Response (200 OK):**
 ```json
@@ -208,13 +208,13 @@
 }
 ```
 
-**Важно:** При чтении (GET) API возвращает `vehicle_id` и `user_id` (read-only). При создании/обновлении (POST/PATCH) нужно передавать `vehicle` (write-only).
+**Important:** When reading (GET), the API returns `vehicle_id` and `user_id` (read-only). When creating/updating (POST/PATCH), you need to pass `vehicle` (write-only).
 
-### 4.2. Create Fuel Entry (Создать заправку)
+### 4.2. Create Fuel Entry
 
 **Endpoint:** `POST /api/v1/fuel-entries`
 
-**Аутентификация:** Требуется
+**Authentication:** Required
 
 **Request Body:**
 ```json
@@ -231,38 +231,38 @@
 }
 ```
 
-**Бизнес-логика:**
-- Проверка на строгое возрастание одометра.
-- Дата не может быть в будущем.
-- При создании/обновлении/удалении запускается каскадный пересчет метрик.
-- `vehicle` - ID автомобиля (write-only при создании).
-- Вычисляемые поля (`unit_price`, `distance_since_last`, `consumption_l_100km`, `cost_per_km`) рассчитываются автоматически.
+**Business Logic:**
+- Check for strictly increasing odometer.
+- Date cannot be in the future.
+- Cascade recalculation of metrics on create/update/delete.
+- `vehicle` - Vehicle ID (write-only on creation).
+- Calculated fields (`unit_price`, `distance_since_last`, `consumption_l_100km`, `cost_per_km`) are calculated automatically.
 
-**Success Response (201 Created):** Созданная запись с вычисленными метриками и полями `vehicle_id`, `user_id` вместо `vehicle`.
+**Success Response (201 Created):** Created record with calculated metrics and `vehicle_id`, `user_id` fields instead of `vehicle`.
 
-### 4.3. Прочие эндпоинты Fuel Entries
+### 4.3. Other Fuel Entries Endpoints
 
-- `GET /api/v1/fuel-entries/{id}` - Получить детали
-- `PATCH /api/v1/fuel-entries/{id}` - Обновить
-- `DELETE /api/v1/fuel-entries/{id}` - Удалить
+- `GET /api/v1/fuel-entries/{id}` - Get details
+- `PATCH /api/v1/fuel-entries/{id}` - Update
+- `DELETE /api/v1/fuel-entries/{id}` - Delete
 
 ---
 
 ## 5. Statistics
 
-### 5.1. Get Dashboard Statistics (Статистика для дашборда)
+### 5.1. Get Dashboard Statistics
 
 **Endpoint:** `GET /api/v1/statistics/dashboard`
 
-**Аутентификация:** Требуется
+**Authentication:** Required
 
 **Query Parameters:**
-| Параметр | Тип | Описание |
+| Parameter | Type | Description |
 |----------|-----|----------|
-| `vehicle` | integer | ID автомобиля (если не указан — по всем) |
-| `period` | string | "30d", "90d", "ytd", "custom" (по умолчанию "30d") |
-| `date_after` | string (ISO date) | Начало периода (для `period=custom`) |
-| `date_before` | string (ISO date) | Конец периода (для `period=custom`) |
+| `vehicle` | integer | Vehicle ID (if not specified - for all) |
+| `period` | string | "30d", "90d", "ytd", "custom" (default "30d") |
+| `date_after` | string (ISO date) | Start of period (for `period=custom`) |
+| `date_before` | string (ISO date) | End of period (for `period=custom`) |
 
 **Success Response (200 OK):**
 ```json
@@ -275,7 +275,7 @@
   "aggregates": {
     "average_consumption": 8.5,
     "average_unit_price": 1.42,
-    // ... другие агрегаты
+    // ... other aggregates
   },
   "time_series": {
     "consumption": [
@@ -285,16 +285,16 @@
 }
 ```
 
-### 5.2. Get Statistics by Brand (Статистика по брендам)
+### 5.2. Get Statistics by Brand
 
 **Endpoint:** `GET /api/v1/statistics/by-brand`
 
-**Аутентификация:** Требуется
+**Authentication:** Required
 
 **Query Parameters:**
-| Параметр | Тип | Описание |
+| Parameter | Type | Description |
 |----------|-----|----------|
-| `vehicle` | integer | ID автомобиля (если не указан — по всем) |
+| `vehicle` | integer | Vehicle ID (if not specified - for all) |
 
 **Success Response (200 OK):**
 ```json
@@ -316,26 +316,26 @@
 ]
 ```
 
-**Описание:**
-Возвращает all-time статистику по каждому бренду топлива:
-- `brand`: название бренда
-- `average_consumption`: средний расход (л/100км)
-- `average_unit_price`: средняя цена за литр
-- `average_cost_per_km`: средняя стоимость за км
-- `fill_count`: количество заправок этим брендом
+**Description:**
+Returns all-time statistics for each fuel brand:
+- `brand`: brand name
+- `average_consumption`: average consumption (L/100km)
+- `average_unit_price`: average price per liter
+- `average_cost_per_km`: average cost per km
+- `fill_count`: number of fill-ups with this brand
 
-Записи отсортированы по количеству заправок (больше первыми).
+Records are sorted by the number of fill-ups (most first).
 
-### 5.3. Get Statistics by Grade (Статистика по маркам)
+### 5.3. Get Statistics by Grade
 
 **Endpoint:** `GET /api/v1/statistics/by-grade`
 
-**Аутентификация:** Требуется
+**Authentication:** Required
 
 **Query Parameters:**
-| Параметр | Тип | Описание |
+| Parameter | Type | Description |
 |----------|-----|----------|
-| `vehicle` | integer | ID автомобиля (если не указан — по всем) |
+| `vehicle` | integer | Vehicle ID (if not specified - for all) |
 
 **Success Response (200 OK):**
 ```json
@@ -357,12 +357,12 @@
 ]
 ```
 
-**Описание:**
-Возвращает all-time статистику по каждой марке топлива (октановое число):
-- `grade`: марка/октановое число
-- `average_consumption`: средний расход (л/100км)
-- `average_unit_price`: средняя цена за литр
-- `average_cost_per_km`: средняя стоимость за км
-- `fill_count`: количество заправок этой маркой
+**Description:**
+Returns all-time statistics for each fuel grade (octane number):
+- `grade`: grade/octane number
+- `average_consumption`: average consumption (L/100km)
+- `average_unit_price`: average price per liter
+- `average_cost_per_km`: average cost per km
+- `fill_count`: number of fill-ups with this grade
 
-Записи отсортированы по количеству заправок (больше первыми).
+Records are sorted by the number of fill-ups (most first).

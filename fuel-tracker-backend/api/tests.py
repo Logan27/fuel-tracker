@@ -11,19 +11,19 @@ User = get_user_model()
 
 class StatisticsAPITestCase(APITestCase):
     """
-    Тесты для эндпоинта статистики дашборда
+    Tests for dashboard statistics endpoint
     """
     
     def setUp(self):
-        """Создаем тестовые данные"""
-        # Создаем пользователя
+        """Create test data"""
+        # Create user
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
             password='testpass123'
         )
         
-        # Создаем автомобиль
+        # Create vehicle
         self.vehicle = Vehicle.objects.create(
             user=self.user,
             name='Test Car',
@@ -33,10 +33,10 @@ class StatisticsAPITestCase(APITestCase):
             fuel_type='Gasoline'
         )
         
-        # Создаем несколько записей о заправках
+        # Create several fuel entries
         today = date.today()
         
-        # Запись 1 (baseline, 40 дней назад)
+        # Entry 1 (baseline, 40 days ago)
         self.entry1 = FuelEntry.objects.create(
             vehicle=self.vehicle,
             user=self.user,
@@ -49,7 +49,7 @@ class StatisticsAPITestCase(APITestCase):
             total_amount=Decimal('75.00')
         )
         
-        # Запись 2 (20 дней назад, внутри периода 30d)
+        # Entry 2 (20 days ago, within 30d period)
         self.entry2 = FuelEntry.objects.create(
             vehicle=self.vehicle,
             user=self.user,
@@ -62,7 +62,7 @@ class StatisticsAPITestCase(APITestCase):
             total_amount=Decimal('70.00')
         )
         
-        # Запись 3 (10 дней назад, внутри периода 30d)
+        # Entry 3 (10 days ago, within 30d period)
         self.entry3 = FuelEntry.objects.create(
             vehicle=self.vehicle,
             user=self.user,
@@ -75,14 +75,14 @@ class StatisticsAPITestCase(APITestCase):
             total_amount=Decimal('73.00')
         )
         
-        # Вычисляем метрики для всех записей
+        # Calculate metrics for all entries
         from .services import FuelEntryMetricsService
         for entry in [self.entry1, self.entry2, self.entry3]:
             FuelEntryMetricsService.calculate_metrics(entry)
             entry.save()
     
     def test_dashboard_statistics_30d(self):
-        """Тест статистики за 30 дней"""
+        """Test statistics for 30 days"""
         self.client.force_authenticate(user=self.user)
         
         response = self.client.get('/api/v1/statistics/dashboard', {'period': '30d'})
@@ -92,23 +92,23 @@ class StatisticsAPITestCase(APITestCase):
         self.assertIn('aggregates', response.data)
         self.assertIn('time_series', response.data)
         
-        # Проверяем период
+        # Check period
         self.assertEqual(response.data['period']['type'], '30d')
         
-        # Проверяем агрегаты
+        # Check Aggregates
         aggregates = response.data['aggregates']
         self.assertIn('average_consumption', aggregates)
         self.assertIn('total_distance', aggregates)
-        self.assertEqual(aggregates['entry_count'], 2)  # 2 записи в периоде 30d
+        self.assertEqual(aggregates['entry_count'], 2)  # 2 entries in 30d period
     
     def test_dashboard_statistics_unauthenticated(self):
-        """Тест доступа без аутентификации"""
+        """Test access without authentication"""
         response = self.client.get('/api/v1/statistics/dashboard')
-        # DRF может вернуть 401 или 403 в зависимости от настроек
+        # DRF may return 401 or 403 depending on settings
         self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
     
     def test_dashboard_statistics_invalid_period(self):
-        """Тест с невалидным периодом"""
+        """Test with invalid period"""
         self.client.force_authenticate(user=self.user)
         
         response = self.client.get('/api/v1/statistics/dashboard', {'period': 'invalid'})
@@ -116,7 +116,7 @@ class StatisticsAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
     
     def test_dashboard_statistics_vehicle_filter(self):
-        """Тест фильтрации по автомобилю"""
+        """Test filtering by vehicle"""
         self.client.force_authenticate(user=self.user)
         
         response = self.client.get('/api/v1/statistics/dashboard', {
@@ -128,7 +128,7 @@ class StatisticsAPITestCase(APITestCase):
         self.assertEqual(response.data['aggregates']['entry_count'], 2)
     
     def test_dashboard_statistics_custom_period(self):
-        """Тест с custom периодом"""
+        """Test with custom period"""
         self.client.force_authenticate(user=self.user)
         
         today = date.today()
@@ -143,4 +143,4 @@ class StatisticsAPITestCase(APITestCase):
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['period']['type'], 'custom')
-        self.assertEqual(response.data['aggregates']['entry_count'], 1)  # только entry3
+        self.assertEqual(response.data['aggregates']['entry_count'], 1)  # only entry3

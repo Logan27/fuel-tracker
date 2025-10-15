@@ -3,14 +3,14 @@ import { ENV } from '@/shared/config';
 import type { ApiErrorResponse } from './types';
 import { parseApiError } from '@/shared/lib/errors';
 
-// Создаём axios instance с базовой конфигурацией
+// Create axios instance with base configuration
 export const apiClient = axios.create({
   baseURL: ENV.API_URL,
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Для отправки cookies (session)
+  withCredentials: true, // For sending cookies (session)
 });
 
 // Helper function to normalize URL - remove trailing slash
@@ -20,7 +20,7 @@ const normalizeUrl = (url?: string): string => {
   return url.length > 1 && url.endsWith('/') ? url.slice(0, -1) : url;
 };
 
-// Функция для получения CSRF токена из cookies
+// Function to get CSRF token from cookies
 const getCsrfToken = (): string | null => {
   const name = 'csrftoken';
   const cookieValue = document.cookie
@@ -30,12 +30,12 @@ const getCsrfToken = (): string | null => {
   return cookieValue || null;
 };
 
-// Request interceptor - добавляем CSRF токен к небезопасным методам
+// Request interceptor - add CSRF token to unsafe methods
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const method = config.method?.toUpperCase();
     
-    // Добавляем CSRF токен для POST, PUT, PATCH, DELETE
+    // Add CSRF token for POST, PUT, PATCH, DELETE
     if (method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
       const csrfToken = getCsrfToken();
       if (csrfToken && config.headers) {
@@ -68,7 +68,7 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - обработка ошибок
+// Response interceptor - error handling
 apiClient.interceptors.response.use(
   (response) => {
     return response;
@@ -77,9 +77,9 @@ apiClient.interceptors.response.use(
     // Parse error using centralized handler
     const parsedError = parseApiError(error);
 
-    // Обработка 401 - перенаправление на /auth
+    // Handle 401 - redirect to /auth
     if (error.response?.status === 401) {
-      // Не редиректим если уже на странице авторизации
+      // Don't redirect if already on auth page
       if (window.location.pathname !== '/auth') {
         // Clear auth state and redirect
         localStorage.removeItem('auth-storage');

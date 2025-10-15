@@ -36,7 +36,7 @@ export const SignInForm = () => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>email</FormLabel>
               <FormControl>
                 <Input
                   type="email"

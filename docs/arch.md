@@ -1,58 +1,58 @@
-# Архитектура Fuel Tracker MVP (Django REST Framework)
+# Fuel Tracker MVP Architecture (Django REST Framework)
 
-## 🏗️ Общая архитектура
+## 🏗️ General Architecture
 
-### Стек технологий
+### Technology Stack
 
 **Backend: Python + Django REST Framework (DRF)**
-- **Надежность и скорость разработки**: Django предоставляет мощную ORM, систему миграций, аутентификацию и админ-панель "из коробки".
-- **DRF**: Стандарт де-факто для создания REST API на Django. Обеспечивает сериализацию, валидацию, аутентификацию и гибкие классы представлений (Views).
-- **Экосистема**: Огромное количество проверенных временем библиотек для любых задач.
+- **Reliability and development speed**: Django provides a powerful ORM, migration system, authentication, and an admin panel "out of the box".
+- **DRF**: The de-facto standard for creating REST APIs in Django. It provides serialization, validation, authentication, and flexible view classes.
+- **Ecosystem**: A huge number of time-tested libraries for any task.
 
-**База данных: PostgreSQL**
-- Надежность, производительность и расширенные возможности, такие как JSONB и PostGIS. Отлично интегрируется с Django.
+**Database: PostgreSQL**
+- Reliability, performance, and advanced features like JSONB and PostGIS. Integrates perfectly with Django.
 
-**Кэширование: Redis**
-- Используется для кэширования запросов к базе данных, результатов сериализации и сессий, что значительно ускоряет ответы API.
+**Caching: Redis**
+- Used for caching database queries, serialization results, and sessions, which significantly speeds up API responses.
 
-**Асинхронные задачи: Celery + Redis/RabbitMQ**
-- Для выполнения фоновых задач, таких как пересчет статистики после обновления данных или отправка email-уведомлений.
+**Asynchronous Tasks: Celery + Redis/RabbitMQ**
+- For performing background tasks, such as recalculating statistics after data updates or sending email notifications.
 
-## 🏛️ Структура проекта
+## 🏛️ Project Structure
 
-Проект будет следовать общепринятой структуре Django-приложений для обеспечения модульности и масштабируемости.
+The project will follow a standard Django application structure to ensure modularity and scalability.
 
 ```
 fuel_tracker/
 ├── manage.py
-├── fuel_tracker/      # Основное приложение проекта
+├── fuel_tracker/      # Main project application
 │   ├── __init__.py
-│   ├── settings.py    # Настройки
-│   ├── urls.py        # Корневой URL-конфиг
+│   ├── settings.py    # Settings
+│   ├── urls.py        # Root URL config
 │   └── wsgi.py
-├── api/               # Приложение для REST API
+├── api/               # Application for the REST API
 │   ├── __init__.py
-│   ├── models.py      # Модели данных (User, Vehicle, FuelEntry)
-│   ├── serializers.py # Сериализаторы DRF
-│   ├── views.py       # ViewSets и API Views
-│   ├── urls.py        # URL-конфиг для API
-│   ├── permissions.py # Кастомные классы прав доступа
-│   ├── services.py    # Слой бизнес-логики
-│   └── tests/         # Тесты для API
-├── core/              # Общие утилиты, кастомные поля и т.д.
-└── docs/              # Документация
+│   ├── models.py      # Data models (User, Vehicle, FuelEntry)
+│   ├── serializers.py # DRF serializers
+│   ├── views.py       # ViewSets and API Views
+│   ├── urls.py        # URL config for the API
+│   ├── permissions.py # Custom permission classes
+│   ├── services.py    # Business logic layer
+│   └── tests/         # Tests for the API
+├── core/              # Common utilities, custom fields, etc.
+└── docs/              # Documentation
 ```
 
-## 🧩 Ключевые компоненты Django
+## 🧩 Key Django Components
 
-- **Models (`models.py`)**: Определяют структуру данных с помощью Django ORM. Являются единственным источником правды о полях, их типах и связях.
-- **Serializers (`serializers.py`)**: Преобразуют сложные типы данных, такие как QuerySets и экземпляры моделей, в нативные типы Python, которые затем легко рендерятся в JSON. Также отвечают за валидацию входящих данных.
-- **Views (`views.py`)**: Обрабатывают HTTP-запросы и возвращают HTTP-ответы. Мы будем использовать `ModelViewSet` из DRF для стандартных CRUD-операций, что позволяет избежать написания повторяющегося кода.
-- **Services (`services.py`)**: Слой для инкапсуляции бизнес-логики. View не должны содержать сложную логику; они вызывают методы из сервисного слоя, который, в свою очередь, работает с моделями (ORM). Это делает код более чистым, тестируемым и переиспользуемым.
+- **Models (`models.py`)**: Define the data structure using the Django ORM. They are the single source of truth about fields, their types, and relationships.
+- **Serializers (`serializers.py`)**: Convert complex data types, such as QuerySets and model instances, into native Python types that can then be easily rendered into JSON. They are also responsible for validating incoming data.
+- **Views (`views.py`)**: Handle HTTP requests and return HTTP responses. We will use `ModelViewSet` from DRF for standard CRUD operations, which avoids writing repetitive code.
+- **Services (`services.py`)**: A layer for encapsulating business logic. Views should not contain complex logic; they call methods from the service layer, which in turn works with models (ORM). This makes the code cleaner, more testable, and reusable.
 
-## 📊 Схема данных (Django Models)
+## 📊 Data Schema (Django Models)
 
-Схема базы данных остается концептуально той же, но реализуется через Django ORM.
+The database schema remains conceptually the same but is implemented through the Django ORM.
 
 ```python
 # api/models.py
@@ -91,7 +91,7 @@ class FuelEntry(models.Model):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     notes = models.TextField(max_length=500, blank=True)
 
-    # Кэшируемые/вычисляемые поля
+    # Cached/calculated fields
     unit_price = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True)
     distance_since_last = models.IntegerField(null=True, blank=True)
     consumption_l_100km = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
@@ -105,10 +105,10 @@ class FuelEntry(models.Model):
         ordering = ['-entry_date', '-created_at']
 ```
 
-## ⚡ Оптимизация производительности (< 500ms)
+## ⚡ Performance Optimization (< 500ms)
 
-### 1. Оптимизация запросов к БД
-- **`select_related` и `prefetch_related`**: Для уменьшения количества SQL-запросов при выборке связанных объектов (N+1 проблема). `select_related` используется для `ForeignKey` и `OneToOneField` (делает `JOIN`), а `prefetch_related` — для `ManyToManyField` и обратных `ForeignKey` (делает отдельный `IN` запрос).
+### 1. DB Query Optimization
+- **`select_related` and `prefetch_related`**: To reduce the number of SQL queries when fetching related objects (N+1 problem). `select_related` is used for `ForeignKey` and `OneToOneField` (performs a `JOIN`), while `prefetch_related` is for `ManyToManyField` and reverse `ForeignKey` (performs a separate `IN` query).
 
 ```python
 # api/views.py
@@ -117,17 +117,17 @@ class VehicleViewSet(viewsets.ModelViewSet):
     serializer_class = VehicleSerializer
 
     def get_queryset(self):
-        # Оптимизация: получаем пользователя вместе с автомобилем одним запросом
+        # Optimization: get the user along with the vehicle in one query
         return self.queryset.filter(user=self.request.user).select_related('user')
 ```
 
-- **`defer()` и `only()`**: Для загрузки только необходимых полей из базы данных.
-- **Индексы**: Создание индексов в `Meta` классе моделей для полей, которые часто используются для фильтрации и сортировки.
+- **`defer()` and `only()`**: To load only the necessary fields from the database.
+- **Indexes**: Creating indexes in the `Meta` class of models for fields that are frequently used for filtering and sorting.
 
 ```python
 # api/models.py
 class FuelEntry(models.Model):
-    # ... поля ...
+    # ... fields ...
     class Meta:
         indexes = [
             models.Index(fields=['vehicle', '-entry_date']),
@@ -135,9 +135,9 @@ class FuelEntry(models.Model):
         ]
 ```
 
-### 2. Кэширование
-- **Кэширование на уровне View**: Использование декораторов `@cache_page` от Django для кэширования ответов целых страниц/эндпоинтов.
-- **Гранулярное кэширование**: Кэширование результатов "тяжелых" вычислений или запросов к БД с помощью низкоуровневого API кэша Django.
+### 2. Caching
+- **View-level Caching**: Using `@cache_page` decorators from Django to cache responses of entire pages/endpoints.
+- **Granular Caching**: Caching the results of "heavy" computations or database queries using Django's low-level cache API.
 
 ```python
 # api/services.py
@@ -149,7 +149,7 @@ class DashboardService:
         stats = cache.get(cache_key)
 
         if stats is None:
-            # "Тяжелый" запрос к БД
+            # "Heavy" DB query
             stats = FuelEntry.objects.filter(
                 user_id=user_id,
                 vehicle_id=vehicle_id,
@@ -157,15 +157,15 @@ class DashboardService:
             ).aggregate(
                 total_spent=Sum('total_amount'),
                 avg_consumption=Avg('consumption_l_100km')
-                # ... другие агрегаты
+                # ... other aggregates
             )
-            cache.set(cache_key, stats, timeout=300) # Кэш на 5 минут
+            cache.set(cache_key, stats, timeout=300) # Cache for 5 minutes
 
         return stats
 ```
 
-### 3. Пагинация
-DRF предоставляет мощные и гибкие классы пагинации. Мы будем использовать `CursorPagination` для эндпоинтов с бесконечной прокруткой (история заправок), так как он обеспечивает наилучшую производительность для больших наборов данных.
+### 3. Pagination
+DRF provides powerful and flexible pagination classes. We will use `CursorPagination` for endpoints with infinite scrolling (refueling history), as it provides the best performance for large datasets.
 
 ```python
 # settings.py
@@ -175,11 +175,11 @@ REST_FRAMEWORK = {
 }
 ```
 
-## 🔐 Безопасность
+## 🔐 Security
 
-### 1. Аутентификация и авторизация
-- **Аутентификация**: Будет использоваться `SessionAuthentication` с `HttpOnly` cookies для защиты от XSS и `CSRF` токенами, что является рекомендуемым Django подходом для веб-клиентов. Для мобильных клиентов можно легко добавить `TokenAuthentication`.
-- **Авторизация (Permissions)**: DRF предоставляет классы прав доступа. Мы создадим кастомный permission, который будет проверять, что пользователь может получить доступ только к своим собственным объектам (автомобилям, записям).
+### 1. Authentication and Authorization
+- **Authentication**: `SessionAuthentication` with `HttpOnly` cookies will be used for protection against XSS and `CSRF` tokens, which is the recommended Django approach for web clients. `TokenAuthentication` can be easily added for mobile clients.
+- **Authorization (Permissions)**: DRF provides permission classes. We will create a custom permission that checks if a user can only access their own objects (vehicles, records).
 
 ```python
 # api/permissions.py
@@ -187,16 +187,16 @@ from rest_framework import permissions
 
 class IsOwner(permissions.BasePermission):
     """
-    Разрешает доступ только владельцу объекта.
+    Allows access only to the owner of the object.
     """
     def has_object_permission(self, request, view, obj):
-        # obj может быть Vehicle, FuelEntry и т.д.
-        # У всех этих моделей есть поле `user`.
+        # obj can be Vehicle, FuelEntry, etc.
+        # All these models have a `user` field.
         return obj.user == request.user
 ```
 
-### 2. Изоляция данных (Row-Level Security)
-Это ключевое требование безопасности. Оно будет реализовано на уровне базовых `QuerySet` в `ViewSet`, гарантируя, что ни один запрос не сможет получить данные другого пользователя.
+### 2. Data Isolation (Row-Level Security)
+This is a key security requirement. It will be implemented at the base `QuerySet` level in the `ViewSet`, ensuring that no query can retrieve another user's data.
 
 ```python
 # api/views.py
@@ -206,19 +206,19 @@ class FuelEntryViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Этот метод гарантирует, что пользователь видит только свои записи.
+        This method ensures that the user sees only their own records.
         """
         return FuelEntry.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         """
-        При создании новой записи, она автоматически привязывается к текущему пользователю.
+        When creating a new record, it is automatically linked to the current user.
         """
         serializer.save(user=self.request.user)
 ```
 
-### 3. Валидация
-Сериализаторы DRF являются мощным инструментом для валидации входящих данных. Они автоматически обрабатывают проверку типов, обязательных полей и могут быть расширены для сложных бизнес-правил.
+### 3. Validation
+DRF serializers are a powerful tool for validating incoming data. They automatically handle type checking, required fields, and can be extended for complex business rules.
 
 ```python
 # api/serializers.py
@@ -230,7 +230,7 @@ class FuelEntrySerializer(serializers.ModelSerializer):
 
     def validate_odometer(self, value):
         """
-        Проверяет, что значение одометра больше предыдущего для данного автомобиля.
+        Checks that the odometer value is greater than the previous one for the given vehicle.
         """
         vehicle = self.context['view'].get_object().vehicle if self.instance else self.context['request'].data.get('vehicle')
         last_entry = FuelEntry.objects.filter(vehicle=vehicle).order_by('-entry_date').first()
@@ -239,19 +239,19 @@ class FuelEntrySerializer(serializers.ModelSerializer):
         return value
 ```
 
-### 4. Соответствие требованиям (Compliance) и управление данными
+### 4. Compliance and Data Management
 
-Для выполнения требований GDPR и предоставления пользователям контроля над своими данными будут реализованы следующие функции:
+To meet GDPR requirements and give users control over their data, the following features will be implemented:
 
-- **Удаление аккаунта**: Будет создан эндпоинт `DELETE /api/users/me/`, который выполнит полное (hard-delete) удаление пользователя и всех связанных с ним данных (автомобили, записи о заправках).
-- **Экспорт данных**: Эндпоинт `GET /api/users/me/export/` позволит пользователю скачать все свои данные в формате CSV.
+- **Account Deletion**: An endpoint `DELETE /api/users/me/` will be created to perform a full (hard-delete) of the user and all associated data (vehicles, fuel entries).
+- **Data Export**: An endpoint `GET /api/users/me/export/` will allow the user to download all their data in CSV format.
 
-## 🚦 Обработка ошибок
+## 🚦 Error Handling
 
-Для обеспечения надежности и предоставления клиентам консистентных ответов будет реализована централизованная обработка ошибок.
+To ensure reliability and provide consistent responses to clients, a centralized error handling system will be implemented.
 
-- **Сокрытие стектрейсов**: В продакшн-режиме (`DEBUG=False`) Django автоматически скрывает детальные стектрейсы.
-- **Кастомный обработчик исключений**: Будет настроен кастомный обработчик исключений в DRF. Это позволит форматировать все ответы об ошибках в едином стиле, например:
+- **Hiding Stack Traces**: In production mode (`DEBUG=False`), Django automatically hides detailed stack traces.
+- **Custom Exception Handler**: A custom exception handler will be configured in DRF. This will allow all error responses to be formatted in a unified style, for example:
   ```json
   {
     "errors": [
@@ -263,17 +263,17 @@ class FuelEntrySerializer(serializers.ModelSerializer):
     ]
   }
   ```
-  Это будет сделано путем установки `EXCEPTION_HANDLER` в настройках `REST_FRAMEWORK`.
+  This will be done by setting `EXCEPTION_HANDLER` in the `REST_FRAMEWORK` settings.
 
-## 📜 Логирование и Мониторинг
+## 📜 Logging and Monitoring
 
-Для соответствия требованиям по наблюдаемости (observability) и безопасности будет настроена детальная система логирования.
+To meet observability and security requirements, a detailed logging system will be configured.
 
-- **Correlation ID**: Будет создано специальное middleware, которое генерирует уникальный `correlation_id` для каждого входящего запроса. Этот ID будет доступен на протяжении всего жизненного цикла запроса и будет автоматически добавляться во все логи.
-- **Конфигурация логгера**: Стандартный логгер Python будет настроен так, чтобы включать в каждую запись `correlation_id` и `user.id` (если пользователь аутентифицирован). Это позволит легко отслеживать цепочку событий для конкретного запроса или пользователя.
-- **Логирование событий безопасности**: Ключевые события, такие как успешный вход, неудачная попытка входа и запрос на сброс пароля, будут явно логироваться с уровнем `INFO` или `WARNING` для последующего аудита.
+- **Correlation ID**: A special middleware will be created that generates a unique `correlation_id` for each incoming request. This ID will be available throughout the request lifecycle and will be automatically added to all logs.
+- **Logger Configuration**: The standard Python logger will be configured to include `correlation_id` and `user.id` (if the user is authenticated) in each entry. This will make it easy to trace the chain of events for a specific request or user.
+- **Security Event Logging**: Key events such as successful login, failed login attempts, and password reset requests will be explicitly logged with an `INFO` or `WARNING` level for subsequent auditing.
 
-## 🐳 Docker конфигурация
+## 🐳 Docker Configuration
 
 ### docker-compose.yml
 ```yaml
@@ -333,24 +333,24 @@ volumes:
 
 ### Dockerfile
 ```dockerfile
-# Указываем базовый образ
+# Specify the base image
 FROM python:3.11-slim
 
-# Устанавливаем переменные окружения
+# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Устанавливаем рабочую директорию
+# Set the working directory
 WORKDIR /app
 
-# Устанавливаем зависимости
+# Install dependencies
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем код проекта
+# Copy the project code
 COPY . /app/
 
-# Открываем порт
+# Expose the port
 EXPOSE 8000
 ```
-Эта архитектура на базе Django REST Framework обеспечивает надежную, безопасную и масштабируемую основу для MVP, следуя лучшим практикам и принципам Django.
+This architecture based on Django REST Framework provides a reliable, secure, and scalable foundation for the MVP, following Django's best practices and principles.

@@ -1,8 +1,8 @@
-# API Examples - curl и httpie
+# API Examples - curl and httpie
 
-Примеры запросов к Fuel Tracker API используя curl и httpie.
+Examples of requests to the Fuel Tracker API using curl and httpie.
 
-## Базовые параметры
+## Base Parameters
 
 ```bash
 BASE_URL="http://localhost:8000/api/v1"
@@ -10,7 +10,7 @@ BASE_URL="http://localhost:8000/api/v1"
 
 ## 1. Authentication
 
-### Регистрация нового пользователя
+### Register a new user
 
 **curl:**
 ```bash
@@ -30,7 +30,7 @@ http POST "${BASE_URL}/auth/signup" \
   password=SecurePass123
 ```
 
-### Вход в систему
+### Sign In
 
 **curl:**
 ```bash
@@ -50,7 +50,7 @@ http --session=./session.json POST "${BASE_URL}/auth/signin" \
   password=SecurePass123
 ```
 
-### Выход из системы
+### Sign Out
 
 **curl:**
 ```bash
@@ -65,7 +65,7 @@ http --session=./session.json POST "${BASE_URL}/auth/signout"
 
 ## 2. User Profile
 
-### Получить профиль пользователя
+### Get user profile
 
 **curl:**
 ```bash
@@ -78,7 +78,7 @@ curl -X GET "${BASE_URL}/users/me" \
 http --session=./session.json GET "${BASE_URL}/users/me"
 ```
 
-### Обновить профиль пользователя
+### Update user profile
 
 **curl:**
 ```bash
@@ -100,7 +100,7 @@ http --session=./session.json PATCH "${BASE_URL}/users/me" \
   preferred_volume_unit=gal
 ```
 
-### Экспорт данных (GDPR)
+### Export data (GDPR)
 
 **curl:**
 ```bash
@@ -114,7 +114,7 @@ curl -X GET "${BASE_URL}/users/me/export" \
 http --session=./session.json --download GET "${BASE_URL}/users/me/export"
 ```
 
-### Удаление аккаунта (GDPR)
+### Delete account (GDPR)
 
 **curl:**
 ```bash
@@ -129,7 +129,7 @@ http --session=./session.json DELETE "${BASE_URL}/users/me"
 
 ## 3. Vehicles
 
-### Список автомобилей
+### List vehicles
 
 **curl:**
 ```bash
@@ -142,7 +142,7 @@ curl -X GET "${BASE_URL}/vehicles" \
 http --session=./session.json GET "${BASE_URL}/vehicles"
 ```
 
-### Создать автомобиль
+### Create vehicle
 
 **curl:**
 ```bash
@@ -168,7 +168,7 @@ http --session=./session.json POST "${BASE_URL}/vehicles" \
   fuel_type=Gasoline
 ```
 
-### Получить детали автомобиля
+### Get vehicle details
 
 **curl:**
 ```bash
@@ -181,7 +181,7 @@ curl -X GET "${BASE_URL}/vehicles/1" \
 http --session=./session.json GET "${BASE_URL}/vehicles/1"
 ```
 
-### Обновить автомобиль
+### Update vehicle
 
 **curl:**
 ```bash
@@ -201,7 +201,7 @@ http --session=./session.json PATCH "${BASE_URL}/vehicles/1" \
   year:=2021
 ```
 
-### Удалить автомобиль
+### Delete vehicle
 
 **curl:**
 ```bash
@@ -216,38 +216,38 @@ http --session=./session.json DELETE "${BASE_URL}/vehicles/1"
 
 ## 4. Fuel Entries
 
-### Список заправок (с фильтрами)
+### List fuel entries (with filters)
 
 **curl:**
 ```bash
-# Все заправки
+# All fuel entries
 curl -X GET "${BASE_URL}/fuel-entries" \
   -b cookies.txt
 
-# С фильтром по автомобилю
+# Filter by vehicle
 curl -X GET "${BASE_URL}/fuel-entries?vehicle=1" \
   -b cookies.txt
 
-# С фильтром по датам
+# Filter by date
 curl -X GET "${BASE_URL}/fuel-entries?date_after=2024-01-01&date_before=2024-12-31" \
   -b cookies.txt
 ```
 
 **httpie:**
 ```bash
-# Все заправки
+# All fuel entries
 http --session=./session.json GET "${BASE_URL}/fuel-entries"
 
-# С фильтром по автомобилю
+# Filter by vehicle
 http --session=./session.json GET "${BASE_URL}/fuel-entries" vehicle==1
 
-# С фильтром по датам
+# Filter by date
 http --session=./session.json GET "${BASE_URL}/fuel-entries" \
   date_after==2024-01-01 \
   date_before==2024-12-31
 ```
 
-### Создать запись о заправке
+### Create a fuel entry
 
 **curl:**
 ```bash
@@ -281,7 +281,7 @@ http --session=./session.json POST "${BASE_URL}/fuel-entries" \
   notes="Full tank"
 ```
 
-### Получить детали заправки
+### Get fuel entry details
 
 **curl:**
 ```bash
@@ -294,7 +294,7 @@ curl -X GET "${BASE_URL}/fuel-entries/1" \
 http --session=./session.json GET "${BASE_URL}/fuel-entries/1"
 ```
 
-### Обновить заправку
+### Update a fuel entry
 
 **curl:**
 ```bash
@@ -314,7 +314,7 @@ http --session=./session.json PATCH "${BASE_URL}/fuel-entries/1" \
   total_amount:=2520.00
 ```
 
-### Удалить заправку
+### Delete a fuel entry
 
 **curl:**
 ```bash
@@ -329,69 +329,69 @@ http --session=./session.json DELETE "${BASE_URL}/fuel-entries/1"
 
 ## 5. Statistics
 
-### Получить статистику дашборда
+### Get dashboard statistics
 
 **curl:**
 ```bash
-# Последние 30 дней (по умолчанию)
+# Last 30 days (default)
 curl -X GET "${BASE_URL}/statistics/dashboard" \
   -b cookies.txt
 
-# Последние 90 дней
+# Last 90 days
 curl -X GET "${BASE_URL}/statistics/dashboard?period=90d" \
   -b cookies.txt
 
-# За год (year-to-date)
+# Year-to-date
 curl -X GET "${BASE_URL}/statistics/dashboard?period=ytd" \
   -b cookies.txt
 
-# Кастомный период
+# Custom period
 curl -X GET "${BASE_URL}/statistics/dashboard?period=custom&date_after=2024-01-01&date_before=2024-12-31" \
   -b cookies.txt
 
-# По конкретному автомобилю
+# For a specific vehicle
 curl -X GET "${BASE_URL}/statistics/dashboard?vehicle=1&period=30d" \
   -b cookies.txt
 ```
 
 **httpie:**
 ```bash
-# Последние 30 дней (по умолчанию)
+# Last 30 days (default)
 http --session=./session.json GET "${BASE_URL}/statistics/dashboard"
 
-# Последние 90 дней
+# Last 90 days
 http --session=./session.json GET "${BASE_URL}/statistics/dashboard" period==90d
 
-# За год (year-to-date)
+# Year-to-date
 http --session=./session.json GET "${BASE_URL}/statistics/dashboard" period==ytd
 
-# Кастомный период
+# Custom period
 http --session=./session.json GET "${BASE_URL}/statistics/dashboard" \
   period==custom \
   date_after==2024-01-01 \
   date_before==2024-12-31
 
-# По конкретному автомобилю
+# For a specific vehicle
 http --session=./session.json GET "${BASE_URL}/statistics/dashboard" \
   vehicle==1 \
   period==30d
 ```
 
-## Полный workflow (сценарий использования)
+## Full workflow (use case scenario)
 
 ```bash
 #!/bin/bash
 BASE_URL="http://localhost:8000/api/v1"
 
-# 1. Регистрация
-echo "=== Регистрация ==="
+# 1. Registration
+echo "=== Registration ==="
 curl -X POST "${BASE_URL}/auth/signup" \
   -H "Content-Type: application/json" \
   -c cookies.txt \
   -d '{"email": "test@example.com", "password": "TestPass123"}'
 
-# 2. Создание автомобиля
-echo -e "\n=== Создание автомобиля ==="
+# 2. Create a vehicle
+echo -e "\n=== Create a vehicle ==="
 VEHICLE_ID=$(curl -s -X POST "${BASE_URL}/vehicles" \
   -H "Content-Type: application/json" \
   -b cookies.txt \
@@ -405,8 +405,8 @@ VEHICLE_ID=$(curl -s -X POST "${BASE_URL}/vehicles" \
 
 echo "Created vehicle ID: $VEHICLE_ID"
 
-# 3. Создание первой заправки (baseline)
-echo -e "\n=== Создание baseline заправки ==="
+# 3. Create the first fuel entry (baseline)
+echo -e "\n=== Create baseline fuel entry ==="
 curl -X POST "${BASE_URL}/fuel-entries" \
   -H "Content-Type: application/json" \
   -b cookies.txt \
@@ -421,8 +421,8 @@ curl -X POST "${BASE_URL}/fuel-entries" \
     \"total_amount\": 2475.00
   }"
 
-# 4. Создание второй заправки (с метриками)
-echo -e "\n=== Создание второй заправки ==="
+# 4. Create a second fuel entry (with metrics)
+echo -e "\n=== Create second fuel entry ==="
 curl -X POST "${BASE_URL}/fuel-entries" \
   -H "Content-Type: application/json" \
   -b cookies.txt \
@@ -437,24 +437,23 @@ curl -X POST "${BASE_URL}/fuel-entries" \
     \"total_amount\": 2310.00
   }"
 
-# 5. Получение статистики
-echo -e "\n=== Статистика ==="
+# 5. Get statistics
+echo -e "\n=== Statistics ==="
 curl -X GET "${BASE_URL}/statistics/dashboard?vehicle=$VEHICLE_ID&period=30d" \
   -b cookies.txt | jq '.'
 
-# 6. Список всех заправок
-echo -e "\n=== Список заправок ==="
+# 6. List all fuel entries
+echo -e "\n=== List of fuel entries ==="
 curl -X GET "${BASE_URL}/fuel-entries?vehicle=$VEHICLE_ID" \
   -b cookies.txt | jq '.'
 
-echo -e "\n=== Готово! ==="
+echo -e "\n=== Done! ==="
 ```
 
-## Примечания
+## Notes
 
-- **curl**: Используйте `-c cookies.txt` для сохранения cookies и `-b cookies.txt` для отправки
-- **httpie**: Используйте `--session=./session.json` для автоматического управления сессией
-- Для JSON-ответов можно использовать `| jq '.'` для красивого форматирования
-- Замените `${BASE_URL}` на актуальный адрес вашего API
-- Для CSRF-защиты при использовании curl может потребоваться дополнительный X-CSRFToken заголовок
-
+- **curl**: Use `-c cookies.txt` to save cookies and `-b cookies.txt` to send them
+- **httpie**: Use `--session=./session.json` for automatic session management
+- For JSON responses, you can use `| jq '.'` for pretty formatting
+- Replace `${BASE_URL}` with the actual address of your API
+- For CSRF protection when using curl, an additional X-CSRFToken header may be required

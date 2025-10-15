@@ -1,7 +1,7 @@
 import { format, parseISO } from 'date-fns';
 
 /**
- * Форматирование даты в локальный формат
+ * Format date to local format
  */
 export const formatDate = (date: string | Date, formatStr = 'dd.MM.yyyy'): string => {
   const parsedDate = typeof date === 'string' ? parseISO(date) : date;
@@ -9,21 +9,21 @@ export const formatDate = (date: string | Date, formatStr = 'dd.MM.yyyy'): strin
 };
 
 /**
- * Форматирование даты и времени
+ * Format date and time
  */
 export const formatDateTime = (date: string | Date): string => {
   return formatDate(date, 'dd.MM.yyyy HH:mm');
 };
 
 /**
- * Форматирование числа с заданным количеством десятичных знаков
+ * Format number with specified decimal places
  */
 export const formatNumber = (value: number, decimals = 2): string => {
   return value.toFixed(decimals);
 };
 
 /**
- * Форматирование валюты
+ * Format currency
  */
 export const formatCurrency = (
   amount: number,
@@ -37,21 +37,21 @@ export const formatCurrency = (
 };
 
 /**
- * Форматирование расстояния с единицами измерения
+ * Format distance with units
  */
 export const formatDistance = (distance: number, unit: 'km' | 'mi' = 'km'): string => {
   return `${formatNumber(distance, 0)} ${unit}`;
 };
 
 /**
- * Форматирование объёма топлива
+ * Format fuel volume
  */
 export const formatVolume = (volume: number, unit: 'L' | 'gal' = 'L'): string => {
   return `${formatNumber(volume, 2)} ${unit}`;
 };
 
 /**
- * Форматирование расхода топлива
+ * Format fuel consumption
  */
 export const formatConsumption = (
   consumption: number,

@@ -63,6 +63,7 @@ const Vehicles = () => {
         make: data.make || undefined,
         model: data.model || undefined,
         year: data.year || undefined,
+        initial_odometer: data.initial_odometer,
         fuel_type: data.fuel_type || undefined,
         is_active: data.is_active,
       },
@@ -85,6 +86,7 @@ const Vehicles = () => {
           make: data.make || undefined,
           model: data.model || undefined,
           year: data.year || undefined,
+          initial_odometer: data.initial_odometer,
           fuel_type: data.fuel_type || undefined,
           is_active: data.is_active,
         },
@@ -172,11 +174,17 @@ const Vehicles = () => {
 
   return (
     <DashboardLayout>
-      {/* Page description */}
-      <div className="mb-8">
-        <p className="text-muted-foreground">
-          Manage your vehicles and track their fuel consumption
-        </p>
+      {/* Page Header */}
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-2xl font-bold">My Vehicles</h1>
+          <p className="text-muted-foreground">
+            Manage your vehicles and track their fuel consumption
+          </p>
+        </div>
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Add Vehicle
+        </Button>
       </div>
 
       {/* Search and Sort Controls */}
@@ -221,7 +229,6 @@ const Vehicles = () => {
       <VehicleList
         vehicles={filteredAndSortedVehicles}
         isLoading={isLoading}
-        onAddClick={() => setIsCreateDialogOpen(true)}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
       />

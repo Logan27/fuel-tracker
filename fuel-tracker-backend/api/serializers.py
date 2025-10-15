@@ -7,38 +7,38 @@ from .services import FuelEntryMetricsService
 
 def sanitize_text_input(value):
     """
-    Санитизация текстового input для защиты от XSS.
-    Удаляет все HTML теги и scripts.
+    Sanitize text input for XSS protection.
+    Removes all HTML tags and scripts.
     """
     if not value:
         return value
-    # Удаляем все HTML теги, оставляем только текст
+    # Remove all HTML tags, keep only text
     cleaned = bleach.clean(value, tags=[], strip=True)
     return cleaned.strip()
 
 
 # Serializers for Statistics API responses
 class TimeSeriesPointSerializer(serializers.Serializer):
-    """Сериализатор для одной точки временного ряда"""
+    """Serializer for a single time series point"""
     date = serializers.DateField()
     value = serializers.DecimalField(max_digits=10, decimal_places=2, allow_null=True)
 
 
 class TimeSeriesDataSerializer(serializers.Serializer):
-    """Сериализатор для временных рядов (consumption, unit_price)"""
+    """Serializer for time series data (consumption, unit_price)"""
     consumption = TimeSeriesPointSerializer(many=True, required=False)
     unit_price = TimeSeriesPointSerializer(many=True, required=False)
 
 
 class PeriodSerializer(serializers.Serializer):
-    """Сериализатор для описания периода статистики"""
+    """Serializer for statistics period description"""
     type = serializers.CharField()
     date_after = serializers.DateField()
     date_before = serializers.DateField()
 
 
 class DashboardAggregatesSerializer(serializers.Serializer):
-    """Сериализатор для агрегированных метрик дашборда"""
+    """Serializer for dashboard aggregated metrics"""
     average_consumption = serializers.DecimalField(max_digits=5, decimal_places=1, allow_null=True)
     average_unit_price = serializers.DecimalField(max_digits=10, decimal_places=2, allow_null=True)
     total_distance = serializers.IntegerField(allow_null=True)
@@ -50,14 +50,14 @@ class DashboardAggregatesSerializer(serializers.Serializer):
 
 
 class DashboardStatisticsResponseSerializer(serializers.Serializer):
-    """Сериализатор для ответа эндпоинта dashboard statistics"""
+    """Serializer for dashboard statistics endpoint response"""
     period = PeriodSerializer()
     aggregates = DashboardAggregatesSerializer()
     time_series = TimeSeriesDataSerializer()
 
 
 class BrandStatisticsSerializer(serializers.Serializer):
-    """Сериализатор для статистики по бренду топлива"""
+    """Serializer for fuel brand statistics"""
     brand = serializers.CharField()
     average_consumption = serializers.DecimalField(max_digits=5, decimal_places=1, allow_null=True)
     average_unit_price = serializers.DecimalField(max_digits=10, decimal_places=2, allow_null=True)
@@ -66,7 +66,7 @@ class BrandStatisticsSerializer(serializers.Serializer):
 
 
 class GradeStatisticsSerializer(serializers.Serializer):
-    """Сериализатор для статистики по марке топлива"""
+    """Serializer for fuel grade statistics"""
     grade = serializers.CharField()
     average_consumption = serializers.DecimalField(max_digits=5, decimal_places=1, allow_null=True)
     average_unit_price = serializers.DecimalField(max_digits=10, decimal_places=2, allow_null=True)
@@ -75,7 +75,7 @@ class GradeStatisticsSerializer(serializers.Serializer):
 
 
 class VehicleSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Vehicle"""
+    """Serializer for Vehicle model"""
     
     name = serializers.CharField(max_length=100, trim_whitespace=True)
     make = serializers.CharField(max_length=50, required=False, allow_blank=True, trim_whitespace=True)
@@ -90,6 +90,7 @@ class VehicleSerializer(serializers.ModelSerializer):
             'make', 
             'model', 
             'year', 
+            'initial_odometer',
             'fuel_type', 
             'is_active', 
             'created_at', 
@@ -98,31 +99,62 @@ class VehicleSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'created_at', 'updated_at')
     
     def validate_name(self, value):
-        """XSS Protection: санитизация имени автомобиля"""
+        """XSS Protection: sanitize vehicle name"""
         return sanitize_text_input(value)
     
     def validate_make(self, value):
-        """XSS Protection: санитизация производителя"""
+        """XSS Protection: sanitize manufacturer"""
         return sanitize_text_input(value)
     
     def validate_model(self, value):
-        """XSS Protection: санитизация модели"""
+        """XSS Protection: sanitize model"""
         return sanitize_text_input(value)
     
     def validate_fuel_type(self, value):
-        """XSS Protection: санитизация типа топлива"""
+        """XSS Protection: sanitize fuel type"""
         return sanitize_text_input(value)
+
+    def validate_initial_odometer(self, value):
+        """Validate that initial odometer is not greater than minimum in entries"""
+        if self.instance:
+            min_odometer_entry = self.instance.fuel_entries.order_by('odometer').first()
+            if min_odometer_entry and value > min_odometer_entry.odometer:
+                raise serializers.ValidationError(
+                    f"Initial odometer cannot be greater than the smallest existing fuel entry odometer reading ({min_odometer_entry.odometer} km)."
+                )
+        return value
+
+    def update(self, instance, validated_data):
+        """
+        Override update to recalculate metrics when initial_odometer changes.
+        """
+        initial_odometer_before_update = instance.initial_odometer
+
+        # Standard instance update
+        instance = super().update(instance, validated_data)
+
+        # If initial_odometer changed, run full metrics recalculation
+        if 'initial_odometer' in validated_data and validated_data['initial_odometer'] != initial_odometer_before_update:
+            FuelEntryMetricsService.recalculate_all_metrics_for_vehicle(instance.id)
+
+            # Invalidate statistics cache for this user
+            # This ensures dashboard shows updated data
+            from django.core.cache import cache
+            from django.utils import timezone
+            cache.set(f'stats_version_user_{instance.user_id}', timezone.now().timestamp())
+
+        return instance
 
 
 class FuelEntrySerializer(serializers.ModelSerializer):
     """
-    Сериализатор для модели FuelEntry.
+    Serializer for FuelEntry model.
     
-    Валидация:
-    - Одометр должен строго возрастать для каждого автомобиля
-    - Дата не может быть в будущем
-    - Liters и total_amount должны быть > 0
-    - XSS санитизация всех текстовых полей
+    Validation:
+    - Odometer must strictly increase for each vehicle
+    - Date cannot be in the future
+    - Liters and total_amount must be > 0
+    - XSS sanitization of all text fields
     """
     vehicle_id = serializers.IntegerField(source='vehicle.id', read_only=True)
     vehicle = serializers.PrimaryKeyRelatedField(
@@ -131,7 +163,7 @@ class FuelEntrySerializer(serializers.ModelSerializer):
     )
     user_id = serializers.IntegerField(source='user.id', read_only=True)
     
-    # Явная валидация текстовых полей
+    # Explicit validation of text fields
     station_name = serializers.CharField(max_length=100, trim_whitespace=True)
     fuel_brand = serializers.CharField(max_length=50, trim_whitespace=True)
     fuel_grade = serializers.CharField(max_length=20, trim_whitespace=True)
@@ -152,7 +184,7 @@ class FuelEntrySerializer(serializers.ModelSerializer):
             'liters',
             'total_amount',
             'notes',
-            # Вычисляемые поля (read-only)
+            # Calculated fields (read-only)
             'unit_price',
             'distance_since_last',
             'consumption_l_100km',
@@ -173,15 +205,15 @@ class FuelEntrySerializer(serializers.ModelSerializer):
         )
     
     def validate_entry_date(self, value):
-        """Дата не может быть в будущем"""
-        if value > timezone.now().date():
+        """Date cannot be in the future"""
+        if value > timezone.localdate():
             raise serializers.ValidationError(
                 "Entry date cannot be in the future."
             )
         return value
     
     def validate_liters(self, value):
-        """Количество литров должно быть > 0"""
+        """Liters must be > 0"""
         if value <= 0:
             raise serializers.ValidationError(
                 "Liters must be greater than zero."
@@ -189,7 +221,7 @@ class FuelEntrySerializer(serializers.ModelSerializer):
         return value
     
     def validate_total_amount(self, value):
-        """Сумма должна быть > 0"""
+        """Total amount must be > 0"""
         if value <= 0:
             raise serializers.ValidationError(
                 "Total amount must be greater than zero."
@@ -197,7 +229,7 @@ class FuelEntrySerializer(serializers.ModelSerializer):
         return value
     
     def validate_odometer(self, value):
-        """Одометр должен быть > 0"""
+        """Odometer must be > 0"""
         if value <= 0:
             raise serializers.ValidationError(
                 "Odometer reading must be greater than zero."
@@ -205,35 +237,35 @@ class FuelEntrySerializer(serializers.ModelSerializer):
         return value
     
     def validate_station_name(self, value):
-        """XSS Protection: санитизация названия станции"""
+        """XSS Protection: sanitize station name"""
         return sanitize_text_input(value)
     
     def validate_fuel_brand(self, value):
-        """XSS Protection: санитизация бренда топлива"""
+        """XSS Protection: sanitize fuel brand"""
         return sanitize_text_input(value)
     
     def validate_fuel_grade(self, value):
-        """XSS Protection: санитизация марки топлива"""
+        """XSS Protection: sanitize fuel grade"""
         return sanitize_text_input(value)
     
     def validate_notes(self, value):
-        """XSS Protection: санитизация заметок"""
+        """XSS Protection: sanitize notes"""
         return sanitize_text_input(value)
     
     def validate(self, data):
         """
-        Валидация одометра: должен строго возрастать для автомобиля.
+        Odometer validation: must strictly increase for vehicle.
         """
-        # Получаем vehicle - либо из данных, либо из существующей записи
+        # Get vehicle - either from data or existing record
         vehicle = data.get('vehicle') or (self.instance.vehicle if self.instance else None)
-        # Получаем odometer - либо из данных, либо из существующей записи
+        # Get odometer - either from data or existing record
         odometer = data.get('odometer') or (self.instance.odometer if self.instance else None)
-        # Получаем entry_date - либо из данных, либо из существующей записи
+        # Get entry_date - either from data or existing record
         entry_date = data.get('entry_date') or (self.instance.entry_date if self.instance else None)
         
-        # Если это обновление существующей записи
+        # If this is updating existing record
         if self.instance:
-            # Проверяем одометр только если он или vehicle изменились
+            # Check odometer only if it or vehicle changed
             odometer_changed = 'odometer' in data and data['odometer'] != self.instance.odometer
             vehicle_changed = 'vehicle' in data and data['vehicle'] != self.instance.vehicle
             
@@ -245,21 +277,27 @@ class FuelEntrySerializer(serializers.ModelSerializer):
                     exclude_id=self.instance.id
                 )
         else:
-            # Для новой записи всегда проверяем
+            # For new record always check
             self._validate_odometer_monotonicity(vehicle, odometer, entry_date)
         
         return data
     
     def _validate_odometer_monotonicity(self, vehicle, odometer, entry_date, exclude_id=None):
         """
-        Проверка монотонности одометра.
-        Одометр должен быть больше всех предыдущих и меньше всех последующих записей.
+        Odometer monotonicity check.
+        Odometer must be greater than all previous and less than all subsequent entries.
         """
-        # Проверка предыдущих записей (одометр должен быть больше)
+        # Check that odometer is not less than initial value for vehicle
+        if odometer < vehicle.initial_odometer:
+            raise serializers.ValidationError({
+                'odometer': f"Odometer reading cannot be less than the vehicle's initial odometer ({vehicle.initial_odometer} km)."
+            })
+
+        # Check previous entries (odometer must be greater)
         previous_entry = FuelEntryMetricsService.get_previous_entry(
             vehicle.id, 
             entry_date,
-            before_id=exclude_id
+            entry_id=exclude_id
         )
         
         if previous_entry and odometer <= previous_entry.odometer:
@@ -267,15 +305,14 @@ class FuelEntrySerializer(serializers.ModelSerializer):
                 'odometer': f"Odometer reading must be greater than the previous entry ({previous_entry.odometer} km on {previous_entry.entry_date})."
             })
         
-        # Проверка последующих записей (одометр должен быть меньше)
+        # Check subsequent entries (odometer must be less)
         next_entry = FuelEntryMetricsService.get_next_entry(
             vehicle.id,
             entry_date,
-            after_id=exclude_id
+            entry_id=exclude_id
         )
         
         if next_entry and odometer >= next_entry.odometer:
             raise serializers.ValidationError({
                 'odometer': f"Odometer reading must be less than the next entry ({next_entry.odometer} km on {next_entry.entry_date})."
             })
-

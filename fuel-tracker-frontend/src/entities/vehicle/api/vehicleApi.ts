@@ -6,7 +6,7 @@ export const vehicleApi = {
   getAll: async (): Promise<Vehicle[]> => {
     try {
       const response = await retryApiClient.get<PaginatedResponse<Vehicle>>('/vehicles');
-      // Backend возвращает пагинированный ответ, извлекаем массив
+      // Backend returns paginated response, extract array
       return response.results;
     } catch (error) {
       handleApiError(error, 'Loading vehicles');

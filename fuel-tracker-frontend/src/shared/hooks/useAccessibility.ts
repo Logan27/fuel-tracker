@@ -86,7 +86,7 @@ export const useFocusManagement = () => {
     }
   }, []);
 
-  const focusNext = useCallback(() => {
+  const focusnext = useCallback(() => {
     const focusableElements = document.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     ) as NodeListOf<HTMLElement>;
@@ -97,7 +97,7 @@ export const useFocusManagement = () => {
     focusElement(focusableElements[nextIndex]);
   }, [focusedElement, focusElement]);
 
-  const focusPrevious = useCallback(() => {
+  const focusprevious = useCallback(() => {
     const focusableElements = document.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     ) as NodeListOf<HTMLElement>;
@@ -112,8 +112,8 @@ export const useFocusManagement = () => {
     focusedElement,
     focusElement,
     blurElement,
-    focusNext,
-    focusPrevious
+    focusnext,
+    focusprevious
   };
 };
 

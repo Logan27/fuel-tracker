@@ -46,21 +46,21 @@ const PaginationLink = ({ className, isActive, size = "icon", ...props }: Pagina
 );
 PaginationLink.displayName = "PaginationLink";
 
-const PaginationPrevious = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
+const Paginationprevious = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
   <PaginationLink aria-label="Go to previous page" size="default" className={cn("gap-1 pl-2.5", className)} {...props}>
     <ChevronLeft className="h-4 w-4" />
-    <span>Previous</span>
+    <span>previous</span>
   </PaginationLink>
 );
-PaginationPrevious.displayName = "PaginationPrevious";
+Paginationprevious.displayName = "Paginationprevious";
 
-const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
+const Paginationnext = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
   <PaginationLink aria-label="Go to next page" size="default" className={cn("gap-1 pr-2.5", className)} {...props}>
-    <span>Next</span>
+    <span>next</span>
     <ChevronRight className="h-4 w-4" />
   </PaginationLink>
 );
-PaginationNext.displayName = "PaginationNext";
+Paginationnext.displayName = "Paginationnext";
 
 const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<"span">) => (
   <span aria-hidden className={cn("flex h-9 w-9 items-center justify-center", className)} {...props}>
@@ -76,6 +76,6 @@ export {
   PaginationEllipsis,
   PaginationItem,
   PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
+  Paginationnext,
+  Paginationprevious,
 };

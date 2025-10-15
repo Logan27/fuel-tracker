@@ -1,5 +1,5 @@
 """
-Тесты для аутентификации и профиля пользователя
+Tests for authentication and user profile
 """
 from django.test import TestCase
 from django.contrib.auth import get_user_model
@@ -11,11 +11,11 @@ User = get_user_model()
 
 class AuthSignUpTestCase(APITestCase):
     """
-    Тесты для регистрации пользователя (AUTH-001, AUTH-002, AUTH-003)
+    Tests for user sign up (AUTH-001, AUTH-002, AUTH-003)
     """
     
     def test_signup_successful(self):
-        """AUTH-001: Успешная регистрация нового пользователя"""
+        """AUTH-001: Successful registration of new user"""
         data = {
             'email': 'newuser@example.com',
             'password': 'TestPass123'
@@ -27,18 +27,18 @@ class AuthSignUpTestCase(APITestCase):
         self.assertIn('id', response.data)
         self.assertEqual(response.data['email'], 'newuser@example.com')
         
-        # Проверяем, что пользователь создан в БД
+        # Check that user is created in DB
         user_exists = User.objects.filter(email='newuser@example.com').exists()
         self.assertTrue(user_exists)
         
-        # Проверяем, что пользователь автоматически авторизован (есть session)
-        # Проверяем через попытку доступа к защищённому эндпоинту
+        # Check that user is automatically authenticated (has session)
+        # Check through attempt to access protected endpoint
         profile_response = self.client.get('/api/v1/users/me')
         self.assertEqual(profile_response.status_code, status.HTTP_200_OK)
     
     def test_signup_duplicate_email(self):
-        """AUTH-002: Регистрация с уже существующим email"""
-        # Создаём существующего пользователя
+        """AUTH-002: Registration with existing email"""
+        # Create existing user
         User.objects.create_user(
             username='existing',
             email='existing@example.com',
@@ -56,10 +56,10 @@ class AuthSignUpTestCase(APITestCase):
         self.assertIn('email', str(response.data).lower())
     
     def test_signup_weak_password(self):
-        """AUTH-003: Регистрация с невалидным паролем (короче 8 символов)"""
+        """AUTH-003: Registration with invalid password (shorter than 8 characters)"""
         data = {
             'email': 'newuser@example.com',
-            'password': '12345'  # Слишком короткий
+            'password': '12345'  # Too short
         }
         
         response = self.client.post('/api/v1/auth/signup', data)
@@ -70,11 +70,11 @@ class AuthSignUpTestCase(APITestCase):
 
 class AuthSignInTestCase(APITestCase):
     """
-    Тесты для входа в систему (AUTH-004, AUTH-005)
+    Tests for sign in (AUTH-004, AUTH-005)
     """
     
     def setUp(self):
-        """Создаём тестового пользователя"""
+        """Create test user"""
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
@@ -82,7 +82,7 @@ class AuthSignInTestCase(APITestCase):
         )
     
     def test_signin_successful(self):
-        """AUTH-004: Успешный вход в систему"""
+        """AUTH-004: Successful sign in"""
         data = {
             'email': 'test@example.com',
             'password': 'TestPass123'
@@ -94,12 +94,12 @@ class AuthSignInTestCase(APITestCase):
         self.assertIn('id', response.data)
         self.assertEqual(response.data['email'], 'test@example.com')
         
-        # Проверяем, что сессия создана
+        # Check that session is created
         profile_response = self.client.get('/api/v1/users/me')
         self.assertEqual(profile_response.status_code, status.HTTP_200_OK)
     
     def test_signin_wrong_password(self):
-        """AUTH-005: Вход с неверным паролем"""
+        """AUTH-005: Sign in with wrong password"""
         data = {
             'email': 'test@example.com',
             'password': 'WrongPassword'
@@ -107,11 +107,11 @@ class AuthSignInTestCase(APITestCase):
         
         response = self.client.post('/api/v1/auth/signin', data)
         
-        # DRF возвращает 400 для ValidationError (это корректное поведение)
+        # DRF returns 400 for ValidationError (this is correct behavior)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
     
     def test_signin_nonexistent_user(self):
-        """Вход с несуществующим email"""
+        """Sign in with non-existent email"""
         data = {
             'email': 'nonexistent@example.com',
             'password': 'SomePassword123'
@@ -119,17 +119,17 @@ class AuthSignInTestCase(APITestCase):
         
         response = self.client.post('/api/v1/auth/signin', data)
         
-        # DRF возвращает 400 для ValidationError (это корректное поведение)
+        # DRF returns 400 for ValidationError (this is correct behavior)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class AuthSignOutTestCase(APITestCase):
     """
-    Тесты для выхода из системы (AUTH-006)
+    Tests for sign out from system (AUTH-006)
     """
     
     def setUp(self):
-        """Создаём и авторизуем пользователя"""
+        """Create and authorize user"""
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
@@ -138,18 +138,18 @@ class AuthSignOutTestCase(APITestCase):
         self.client.force_authenticate(user=self.user)
     
     def test_signout_successful(self):
-        """AUTH-006: Выход из системы"""
-        # Проверяем, что пользователь авторизован
+        """AUTH-006: Sign out from system"""
+        # Check that user is authorized
         profile_response = self.client.get('/api/v1/users/me')
         self.assertEqual(profile_response.status_code, status.HTTP_200_OK)
         
-        # Выходим
+        # Sign out
         response = self.client.post('/api/v1/auth/signout')
         
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         
-        # Проверяем, что сессия завершена
-        # Создаём новый клиент без аутентификации
+        # Check that session is ended
+        # Create new client without authentication
         new_client = self.client_class()
         profile_response = new_client.get('/api/v1/users/me')
         self.assertIn(profile_response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
@@ -157,11 +157,11 @@ class AuthSignOutTestCase(APITestCase):
 
 class UserProfileTestCase(APITestCase):
     """
-    Тесты для профиля пользователя (PROF-001, PROF-002, PROF-003)
+    Tests for user profile (PROF-001, PROF-002, PROF-003)
     """
     
     def setUp(self):
-        """Создаём и авторизуем пользователя"""
+        """Create and authorize user"""
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
@@ -176,7 +176,7 @@ class UserProfileTestCase(APITestCase):
         self.client.force_authenticate(user=self.user)
     
     def test_get_profile(self):
-        """PROF-001: Получение профиля пользователя"""
+        """PROF-001: Getting user profile"""
         response = self.client.get('/api/v1/users/me')
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -187,7 +187,7 @@ class UserProfileTestCase(APITestCase):
         self.assertIn('timezone', response.data)
     
     def test_update_profile_settings(self):
-        """PROF-002: Обновление настроек пользователя (единицы измерения)"""
+        """PROF-002: Updating user settings (units of measurement)"""
         data = {
             'preferred_currency': 'EUR',
             'preferred_distance_unit': 'mi',
@@ -201,14 +201,14 @@ class UserProfileTestCase(APITestCase):
         self.assertEqual(response.data['preferred_distance_unit'], 'mi')
         self.assertEqual(response.data['preferred_volume_unit'], 'gal')
         
-        # Проверяем, что данные обновились в БД
+        # Check that data updated in DB
         self.user.refresh_from_db()
         self.assertEqual(self.user.preferred_currency, 'EUR')
         self.assertEqual(self.user.preferred_distance_unit, 'mi')
         self.assertEqual(self.user.preferred_volume_unit, 'gal')
     
     def test_update_profile_invalid_values(self):
-        """PROF-003: Обновление настроек с невалидными значениями"""
+        """PROF-003: Updating settings with invalid values"""
         data = {
             'preferred_distance_unit': 'invalid_unit'
         }
@@ -219,8 +219,8 @@ class UserProfileTestCase(APITestCase):
         self.assertIn('preferred_distance_unit', str(response.data).lower())
     
     def test_profile_unauthenticated(self):
-        """Попытка получить профиль без аутентификации"""
-        # Создаём новый клиент без аутентификации
+        """Attempt to get profile without authentication"""
+        # Create new client without authentication
         new_client = self.client_class()
         response = new_client.get('/api/v1/users/me')
         

@@ -162,7 +162,7 @@ export const useFocusManagement = () => {
     focusableElements.current = elements;
   }, []);
 
-  const focusNext = useCallback(() => {
+  const focusnext = useCallback(() => {
     const currentIndex = focusableElements.current.findIndex(
       (el) => el === document.activeElement
     );
@@ -170,7 +170,7 @@ export const useFocusManagement = () => {
     focusableElements.current[nextIndex]?.focus();
   }, []);
 
-  const focusPrevious = useCallback(() => {
+  const focusprevious = useCallback(() => {
     const currentIndex = focusableElements.current.findIndex(
       (el) => el === document.activeElement
     );
@@ -190,8 +190,8 @@ export const useFocusManagement = () => {
 
   return {
     updateFocusableElements,
-    focusNext,
-    focusPrevious,
+    focusnext,
+    focusprevious,
     focusFirst,
     focusLast,
   };

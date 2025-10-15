@@ -1,24 +1,24 @@
 import { z } from 'zod';
 
 /**
- * Валидация email
+ * Validation email
  */
 export const emailSchema = z.string().email('Invalid email address');
 
 /**
- * Валидация пароля (минимум 8 символов)
+ * Validation password (Minimum 8 characters)
  */
 export const passwordSchema = z
   .string()
   .min(8, 'Password must be at least 8 characters');
 
 /**
- * Валидация положительного числа
+ * Validate positive number
  */
 export const positiveNumberSchema = z.number().positive('Must be a positive number');
 
 /**
- * Валидация положительного целого числа
+ * Validate positive integer
  */
 export const positiveIntegerSchema = z
   .number()
@@ -26,12 +26,12 @@ export const positiveIntegerSchema = z
   .positive('Must be a positive number');
 
 /**
- * Валидация одометра (положительное целое число)
+ * Validate odometer (positive integer)
  */
 export const odometerSchema = positiveIntegerSchema;
 
 /**
- * Валидация даты (не в будущем)
+ * Validate date (not in future)
  */
 export const pastDateSchema = z.string().refine(
   (date) => {
@@ -44,7 +44,7 @@ export const pastDateSchema = z.string().refine(
 );
 
 /**
- * Валидация года (1900-текущий год)
+ * Validate year (1900-current year)
  */
 export const yearSchema = z
   .number()
@@ -53,7 +53,7 @@ export const yearSchema = z
   .max(new Date().getFullYear() + 1, 'Year cannot be in the future');
 
 /**
- * Проверка является ли строка валидной датой ISO
+ * Check if string is valid ISO date
  */
 export const isValidISODate = (date: string): boolean => {
   const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -64,7 +64,7 @@ export const isValidISODate = (date: string): boolean => {
 };
 
 /**
- * Проверка монотонности одометра
+ * Odometer monotonicity check
  */
 export const validateOdometerMonotonicity = (
   newValue: number,

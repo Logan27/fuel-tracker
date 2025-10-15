@@ -144,8 +144,8 @@ describe('useAccessibility hooks', () => {
       
       expect(typeof result.current.focusElement).toBe('function');
       expect(typeof result.current.blurElement).toBe('function');
-      expect(typeof result.current.focusNext).toBe('function');
-      expect(typeof result.current.focusPrevious).toBe('function');
+      expect(typeof result.current.focusnext).toBe('function');
+      expect(typeof result.current.focusprevious).toBe('function');
     });
 
     it('should focus element when focusElement is called', () => {

@@ -7,7 +7,6 @@ import type { Vehicle } from '@/entities/vehicle';
 interface VehicleListProps {
   vehicles: Vehicle[];
   isLoading?: boolean;
-  onAddClick: () => void;
   onEdit: (vehicle: Vehicle) => void;
   onDelete: (vehicle: Vehicle) => void;
 }
@@ -15,7 +14,6 @@ interface VehicleListProps {
 export const VehicleList = ({
   vehicles,
   isLoading = false,
-  onAddClick,
   onEdit,
   onDelete,
 }: VehicleListProps) => {
@@ -32,7 +30,7 @@ export const VehicleList = ({
   }
 
   if (vehicles.length === 0) {
-    return <EmptyVehicles onAddVehicle={onAddClick} />;
+    return <EmptyVehicles message="You haven't added any vehicles yet." />;
   }
 
   return (

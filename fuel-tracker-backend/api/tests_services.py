@@ -1,5 +1,5 @@
 """
-Unit-тесты для сервисов бизнес-логики
+Unit tests for business logic services
 """
 from django.test import TestCase
 from django.contrib.auth import get_user_model
@@ -13,11 +13,11 @@ User = get_user_model()
 
 class FuelEntryMetricsServiceTestCase(TestCase):
     """
-    Unit-тесты для FuelEntryMetricsService
+    Unit tests for FuelEntryMetricsService
     """
     
     def setUp(self):
-        """Создаём тестовые данные"""
+        """Create test data"""
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
@@ -34,7 +34,7 @@ class FuelEntryMetricsServiceTestCase(TestCase):
         )
     
     def test_calculate_metrics_baseline_entry(self):
-        """Тест вычисления метрик для baseline записи (первой)"""
+        """Test metrics calculation for baseline entry (first)"""
         entry = FuelEntry.objects.create(
             vehicle=self.vehicle,
             user=self.user,
@@ -49,18 +49,18 @@ class FuelEntryMetricsServiceTestCase(TestCase):
         
         FuelEntryMetricsService.calculate_metrics(entry)
         
-        # unit_price должен быть вычислен
+        # unit_price should be calculated
         self.assertIsNotNone(entry.unit_price)
         self.assertEqual(entry.unit_price, Decimal('55.00'))  # 2750 / 50
         
-        # Остальные метрики должны быть None для baseline
+        # Other metrics should be None for baseline
         self.assertIsNone(entry.distance_since_last)
         self.assertIsNone(entry.consumption_l_100km)
         self.assertIsNone(entry.cost_per_km)
     
     def test_calculate_metrics_second_entry(self):
-        """Тест вычисления метрик для второй записи"""
-        # Создаём baseline
+        """Test metrics calculation for second entry"""
+        # Create baseline
         baseline = FuelEntry.objects.create(
             vehicle=self.vehicle,
             user=self.user,
@@ -75,12 +75,12 @@ class FuelEntryMetricsServiceTestCase(TestCase):
         FuelEntryMetricsService.calculate_metrics(baseline)
         baseline.save()
         
-        # Создаём вторую запись
+        # Create second entry
         entry = FuelEntry.objects.create(
             vehicle=self.vehicle,
             user=self.user,
             entry_date=date.today(),
-            odometer=10500,  # +500 км
+            odometer=10500,  # +500 km
             station_name='BP',
             fuel_brand='BP',
             fuel_grade='95',
@@ -105,7 +105,7 @@ class FuelEntryMetricsServiceTestCase(TestCase):
         self.assertAlmostEqual(float(entry.cost_per_km), 4.62, places=2)
     
     def test_calculate_metrics_zero_distance(self):
-        """Тест вычисления метрик когда distance = 0 (одинаковый одометр)"""
+        """Test metrics calculation when distance = 0 (same odometer)"""
         baseline = FuelEntry.objects.create(
             vehicle=self.vehicle,
             user=self.user,
@@ -120,12 +120,12 @@ class FuelEntryMetricsServiceTestCase(TestCase):
         FuelEntryMetricsService.calculate_metrics(baseline)
         baseline.save()
         
-        # Вторая запись с тем же одометром (теоретический случай)
+        # Second entry with same odometer (theoretical case)
         entry = FuelEntry.objects.create(
             vehicle=self.vehicle,
             user=self.user,
             entry_date=date.today(),
-            odometer=10000,  # Тот же одометр
+            odometer=10000,  # Same odometer
             station_name='BP',
             fuel_brand='BP',
             fuel_grade='95',
@@ -138,13 +138,13 @@ class FuelEntryMetricsServiceTestCase(TestCase):
         # distance = 0
         self.assertEqual(entry.distance_since_last, 0)
         
-        # consumption и cost_per_km должны быть None при distance = 0
+        # consumption and cost_per_km should be None when distance = 0
         self.assertIsNone(entry.consumption_l_100km)
         self.assertIsNone(entry.cost_per_km)
     
     def test_recalculate_metrics_after_entry(self):
-        """Тест пересчёта метрик последующих записей"""
-        # Создаём три записи
+        """Test recalculation of subsequent entries metrics"""
+        # Create three entries
         entry1 = FuelEntry.objects.create(
             vehicle=self.vehicle,
             user=self.user,
@@ -187,20 +187,20 @@ class FuelEntryMetricsServiceTestCase(TestCase):
         FuelEntryMetricsService.calculate_metrics(entry3)
         entry3.save()
         
-        # Изменяем entry2 (одометр)
+        # Change entry2 (odometer)
         entry2.odometer = 10600
         entry2.save()
         
-        # Пересчитываем метрики последующих записей
+        # Recalculate metrics for subsequent entries
         FuelEntryMetricsService.recalculate_metrics_after_entry(entry2)
         
-        # Проверяем, что метрики entry3 пересчитались
+        # Check that entry3 metrics were recalculated
         entry3.refresh_from_db()
         self.assertEqual(entry3.distance_since_last, 400)  # 11000 - 10600
     
     def test_insert_entry_with_earlier_date(self):
-        """Тест вставки записи с более ранней датой"""
-        # Создаём две записи
+        """Test inserting entry with earlier date"""
+        # Create two entries
         entry1 = FuelEntry.objects.create(
             vehicle=self.vehicle,
             user=self.user,
@@ -229,15 +229,15 @@ class FuelEntryMetricsServiceTestCase(TestCase):
         FuelEntryMetricsService.calculate_metrics(entry2)
         entry2.save()
         
-        # Проверяем, что entry2 имеет метрики на основе entry1
+        # Check that entry2 has metrics based on entry1
         entry2.refresh_from_db()
         self.assertEqual(entry2.distance_since_last, 800)  # 10800 - 10000
         
-        # Вставляем новую запись между entry1 и entry2
+        # Insert new entry between entry1 and entry2
         entry_middle = FuelEntry.objects.create(
             vehicle=self.vehicle,
             user=self.user,
-            entry_date=date.today() - timedelta(days=12),  # Между -20 и -5
+            entry_date=date.today() - timedelta(days=12),  # Between -20 and -5
             odometer=10400,
             station_name='Lukoil',
             fuel_brand='Lukoil',
@@ -248,20 +248,20 @@ class FuelEntryMetricsServiceTestCase(TestCase):
         FuelEntryMetricsService.calculate_metrics(entry_middle)
         entry_middle.save()
         
-        # Пересчитываем метрики последующих записей
+        # Recalculate metrics for subsequent entries
         FuelEntryMetricsService.recalculate_metrics_after_entry(entry_middle)
         
-        # Проверяем, что entry_middle вычислил метрики на основе entry1
+        # Check that entry_middle calculated metrics based on entry1
         entry_middle.refresh_from_db()
         self.assertEqual(entry_middle.distance_since_last, 400)  # 10400 - 10000
         
-        # Проверяем, что entry2 ПЕРЕСЧИТАЛ метрики на основе entry_middle
+        # Check that entry2 RECALCULATED metrics based on entry_middle
         entry2.refresh_from_db()
-        self.assertEqual(entry2.distance_since_last, 400)  # 10800 - 10400 (НЕ 800!)
+        self.assertEqual(entry2.distance_since_last, 400)  # 10800 - 10400 (NOT 800!)
     
     def test_recalculate_all_metrics_for_vehicle(self):
-        """Тест полного пересчёта всех метрик для автомобиля"""
-        # Создаём несколько записей
+        """Test full recalculation of all metrics for vehicle"""
+        # Create several entries
         entries_data = [
             (date.today() - timedelta(days=30), 10000, '50.00', '2750.00'),
             (date.today() - timedelta(days=20), 10500, '42.00', '2310.00'),
@@ -282,16 +282,16 @@ class FuelEntryMetricsServiceTestCase(TestCase):
                 total_amount=Decimal(amount)
             )
         
-        # Пересчитываем все метрики
+        # Recalculate all metrics
         FuelEntryMetricsService.recalculate_all_metrics_for_vehicle(self.vehicle.id)
         
-        # Проверяем, что метрики рассчитаны корректно
+        # Check that metrics are calculated correctly
         entries = FuelEntry.objects.filter(vehicle=self.vehicle).order_by('entry_date', 'odometer')
         
-        # Первая запись - baseline
+        # First entry is baseline
         self.assertIsNone(entries[0].distance_since_last)
         
-        # Остальные должны иметь вычисленные метрики
+        # Others should have calculated metrics
         for i in range(1, len(entries)):
             self.assertIsNotNone(entries[i].distance_since_last)
             self.assertGreater(entries[i].distance_since_last, 0)
@@ -299,11 +299,11 @@ class FuelEntryMetricsServiceTestCase(TestCase):
 
 class StatisticsServiceTestCase(TestCase):
     """
-    Unit-тесты для StatisticsService
+    Unit tests for StatisticsService
     """
     
     def setUp(self):
-        """Создаём тестовые данные"""
+        """Create test data"""
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
@@ -319,10 +319,10 @@ class StatisticsServiceTestCase(TestCase):
             fuel_type='Gasoline'
         )
         
-        # Создаём записи для разных периодов
+        # Create entries for different periods
         today = date.today()
         
-        # Запись 1: 40 дней назад (вне 30d)
+        # Entry 1: 40 days ago (outside 30d)
         self.entry1 = FuelEntry.objects.create(
             vehicle=self.vehicle,
             user=self.user,
@@ -335,7 +335,7 @@ class StatisticsServiceTestCase(TestCase):
             total_amount=Decimal('2750.00')
         )
         
-        # Запись 2: 20 дней назад (внутри 30d)
+        # Entry 2: 20 days ago (inside 30d)
         self.entry2 = FuelEntry.objects.create(
             vehicle=self.vehicle,
             user=self.user,
@@ -348,7 +348,7 @@ class StatisticsServiceTestCase(TestCase):
             total_amount=Decimal('2310.00')
         )
         
-        # Запись 3: 10 дней назад (внутри 30d)
+        # Entry 3: 10 days ago (inside 30d)
         self.entry3 = FuelEntry.objects.create(
             vehicle=self.vehicle,
             user=self.user,
@@ -361,14 +361,14 @@ class StatisticsServiceTestCase(TestCase):
             total_amount=Decimal('2640.00')
         )
         
-        # Вычисляем метрики
+        # Calculate metrics
         from .services import FuelEntryMetricsService
         for entry in [self.entry1, self.entry2, self.entry3]:
             FuelEntryMetricsService.calculate_metrics(entry)
             entry.save()
     
     def test_calculate_dashboard_statistics_30d(self):
-        """Тест расчёта статистики за 30 дней"""
+        """Test statistics calculation for 30 days"""
         result = StatisticsService.calculate_dashboard_statistics(
             user_id=self.user.id,
             vehicle_id=None,
@@ -381,22 +381,22 @@ class StatisticsServiceTestCase(TestCase):
         self.assertIn('aggregates', result)
         self.assertIn('time_series', result)
         
-        # Проверяем период
+        # Check period
         self.assertEqual(result['period']['type'], '30d')
         
-        # Проверяем aggregates
-        # Должно быть 2 записи в периоде 30d (entry2 и entry3)
+        # Check aggregates
+        # Should be 2 entries in 30d period (entry2 and entry3)
         self.assertEqual(result['aggregates']['entry_count'], 2)
         
-        # Проверяем total_fuel = 42 + 48 = 90
+        # Check total_fuel = 42 + 48 = 90
         self.assertEqual(float(result['aggregates']['total_fuel']), 90.0)
         
-        # Проверяем total_cost = 2310 + 2640 = 4950
+        # Check total_cost = 2310 + 2640 = 4950
         self.assertEqual(float(result['aggregates']['total_cost']), 4950.0)
     
     def test_calculate_dashboard_statistics_vehicle_filter(self):
-        """Тест статистики с фильтром по автомобилю"""
-        # Создаём второй автомобиль
+        """Test statistics with vehicle filter"""
+        # Create second vehicle
         vehicle2 = Vehicle.objects.create(
             user=self.user,
             name='Second Car',
@@ -406,7 +406,7 @@ class StatisticsServiceTestCase(TestCase):
             fuel_type='Gasoline'
         )
         
-        # Создаём запись для второго автомобиля
+        # Create entry for second vehicle
         FuelEntry.objects.create(
             vehicle=vehicle2,
             user=self.user,
@@ -419,7 +419,7 @@ class StatisticsServiceTestCase(TestCase):
             total_amount=Decimal('2200.00')
         )
         
-        # Получаем статистику только для первого автомобиля
+        # Get statistics only for first vehicle
         result = StatisticsService.calculate_dashboard_statistics(
             user_id=self.user.id,
             vehicle_id=self.vehicle.id,
@@ -428,11 +428,11 @@ class StatisticsServiceTestCase(TestCase):
             date_before=None
         )
         
-        # Должно быть только 2 записи (entry2 и entry3), без записи vehicle2
+        # Should be only 2 entries (entry2 and entry3), without vehicle2 entry
         self.assertEqual(result['aggregates']['entry_count'], 2)
     
     def test_calculate_dashboard_statistics_custom_period(self):
-        """Тест статистики с кастомным периодом"""
+        """Test statistics with custom period"""
         today = date.today()
         date_after = today - timedelta(days=15)
         date_before = today
@@ -445,12 +445,12 @@ class StatisticsServiceTestCase(TestCase):
             date_before=date_before
         )
         
-        # Должна быть только 1 запись (entry3) в периоде
+        # Should be only 1 entry (entry3) in period
         self.assertEqual(result['aggregates']['entry_count'], 1)
         self.assertEqual(result['period']['type'], 'custom')
     
     def test_calculate_dashboard_statistics_empty_period(self):
-        """Тест статистики для периода без данных"""
+        """Test statistics for period without data"""
         today = date.today()
         date_after = today - timedelta(days=5)
         date_before = today - timedelta(days=1)
@@ -463,9 +463,9 @@ class StatisticsServiceTestCase(TestCase):
             date_before=date_before
         )
         
-        # Должно быть 0 записей
+        # Should be 0 entries
         self.assertEqual(result['aggregates']['entry_count'], 0)
-        # При отсутствии данных возвращается 0 (не None)
+        # When no data, returns 0 (not None)
         self.assertEqual(result['aggregates']['total_cost'], 0)
         self.assertEqual(result['aggregates']['total_fuel'], 0)
 

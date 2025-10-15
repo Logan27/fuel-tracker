@@ -2,8 +2,8 @@ import { apiClient } from '@/shared/api';
 import type { FuelEntry } from '@/entities/fuel-entry';
 
 /**
- * Валидация монотонности одометра
- * Проверяет, что новое значение одометра больше предыдущего для данного автомобиля
+ * Validate odometer monotonicity
+ * Check that new odometer value is greater than previous for this vehicle
  */
 export const validateOdometerMonotonicity = async (
   vehicleId: number,
@@ -11,7 +11,7 @@ export const validateOdometerMonotonicity = async (
   excludeEntryId?: number
 ): Promise<{ isValid: boolean; lastOdometer?: number; message?: string }> => {
   try {
-    // Получаем последнюю запись для данного автомобиля
+    // Get last entry for this vehicle
     const response = await apiClient.get<{ results: FuelEntry[] }>(
       '/fuel-entries/',
       {
@@ -26,13 +26,13 @@ export const validateOdometerMonotonicity = async (
     const entries = response.data.results;
 
     if (entries.length === 0) {
-      // Нет предыдущих записей - любое положительное значение валидно
+      // No previous entries - any positive value is valid
       return { isValid: true };
     }
 
     const lastEntry = entries[0];
 
-    // Если редактируем существующую запись, исключаем её из проверки
+    // If editing existing entry, exclude it from check
     if (excludeEntryId && lastEntry.id === excludeEntryId) {
       return { isValid: true };
     }
@@ -50,13 +50,13 @@ export const validateOdometerMonotonicity = async (
     return { isValid: true, lastOdometer };
   } catch (error) {
     console.error('Error validating odometer:', error);
-    // В случае ошибки API, разрешаем ввод (не блокируем пользователя)
+    // In case of API error, allow input (don't block user)
     return { isValid: true };
   }
 };
 
 /**
- * Вычисление пройденного расстояния с последней заправки
+ * Distance calculation since last fill-up
  */
 export const calculateDistanceSinceLastEntry = (
   currentOdometer: number,
@@ -66,7 +66,7 @@ export const calculateDistanceSinceLastEntry = (
 };
 
 /**
- * Вычисление расхода топлива (L/100km)
+ * Fuel consumption calculation (L/100km)
  */
 export const calculateConsumption = (
   liters: number,
@@ -77,7 +77,7 @@ export const calculateConsumption = (
 };
 
 /**
- * Вычисление стоимости за километр
+ * Cost per kilometer calculation
  */
 export const calculateCostPerKm = (
   totalAmount: number,
@@ -88,7 +88,7 @@ export const calculateCostPerKm = (
 };
 
 /**
- * Вычисление цены за литр
+ * Price per liter calculation
  */
 export const calculateUnitPrice = (totalAmount: number, liters: number): number => {
   if (liters === 0) return 0;

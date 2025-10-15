@@ -3,6 +3,7 @@ import hashlib
 from django.db import transaction
 from django.core.cache import cache
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import api_view, permission_classes
@@ -24,14 +25,14 @@ from .services import FuelEntryMetricsService, StatisticsService
 
 def generate_safe_cache_key(prefix, user_id, **kwargs):
     """
-    Генерирует безопасный cache key используя hash для user-controlled данных.
-    Защита от cache pollution и NoSQL injection через Redis keys.
+    Generate safe cache key using hash for user-controlled data.
+    Protection against cache pollution and NoSQL injection via Redis keys.
     """
-    # Сортируем kwargs для консистентности
+    # Sort kwargs for consistency
     sorted_params = sorted(kwargs.items())
     params_str = '_'.join(f"{k}={v}" for k, v in sorted_params if v is not None)
     
-    # Создаём hash от параметров
+    # Create hash from parameters
     params_hash = hashlib.md5(params_str.encode()).hexdigest()[:16]
     
     return f"{prefix}_user{user_id}_{params_hash}"
@@ -39,21 +40,21 @@ def generate_safe_cache_key(prefix, user_id, **kwargs):
 
 class FuelEntryCursorPagination(CursorPagination):
     """
-    Кастомная пагинация для FuelEntry
-    Сортировка по дате (новые первыми), затем по created_at
+    Custom pagination for FuelEntry
+    Sort by date (newest first), then by created_at
     """
     page_size = 25
-    max_page_size = 100  # DoS Protection: максимум 100 записей за раз
-    ordering = '-entry_date'  # Сортировка по дате заправки (новые первыми)
+    max_page_size = 100  # DoS Protection: maximum 100 records at once
+    ordering = '-entry_date'  # Sort by fuel date (newest first)
     
     def get_ordering(self, request, queryset, view):
         """
-        Получаем сортировку из параметров запроса или используем по умолчанию
+        Get sorting from request parameters or use default
         """
         sort_by = request.query_params.get('sort_by', 'entry_date')
         sort_order = request.query_params.get('sort_order', 'desc')
         
-        # Валидация параметров сортировки
+        # Validation of sorting parameters
         valid_sort_fields = ['entry_date', 'odometer', 'total_amount', 'created_at']
         if sort_by in valid_sort_fields:
             if sort_order == 'desc':
@@ -61,17 +62,17 @@ class FuelEntryCursorPagination(CursorPagination):
             else:
                 return [sort_by]
         
-        # Сортировка по умолчанию
+        # Default sorting
         return ['-entry_date']
 
 
 class VehiclePagination(PageNumberPagination):
     """
-    Пагинация для Vehicle list.
-    DoS Protection: ограничение размера выборки.
+    Pagination for Vehicle list.
+    DoS Protection: limit selection size.
     """
     page_size = 50
-    max_page_size = 100  # Максимум 100 vehicles за запрос
+    max_page_size = 100  # Maximum 100 vehicles per request
     page_size_query_param = 'page_size'
 
 
@@ -109,8 +110,8 @@ class VehiclePagination(PageNumberPagination):
 )
 class VehicleViewSet(viewsets.ModelViewSet):
     """
-    ViewSet для CRUD операций с автомобилями.
-    Пользователь видит и управляет только своими автомобилями.
+    ViewSet for CRUD operations with vehicles.
+    User sees and manages only their own vehicles.
     """
     serializer_class = VehicleSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwner]
@@ -118,14 +119,14 @@ class VehicleViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Изоляция данных: возвращаем только автомобили текущего пользователя.
-        Используем select_related для оптимизации запросов.
+        Data isolation: return only current user's vehicles.
+        Use select_related for query optimization.
         """
         return Vehicle.objects.filter(user=self.request.user).select_related('user')
 
     def perform_create(self, serializer):
         """
-        При создании автомобиля автоматически привязываем его к текущему пользователю.
+        When creating a vehicle, automatically bind it to the current user.
         """
         serializer.save(user=self.request.user)
 
@@ -223,13 +224,13 @@ class VehicleViewSet(viewsets.ModelViewSet):
 )
 class FuelEntryViewSet(viewsets.ModelViewSet):
     """
-    ViewSet для CRUD операций с записями о заправках.
+    ViewSet for CRUD operations with fuel entries.
     
-    Бизнес-логика:
-    - При создании: вычисляет метрики автоматически
-    - При обновлении: пересчитывает метрики текущей и последующих записей
-    - При удалении: пересчитывает метрики всех записей автомобиля
-    - Все операции выполняются в транзакциях
+    Business logic:
+    - On creation: calculates metrics automatically
+    - On update: recalculates metrics for current and subsequent entries
+    - On deletion: recalculates metrics for all vehicle entries
+    - All operations are performed in transactions
     """
     serializer_class = FuelEntrySerializer
     permission_classes = [permissions.IsAuthenticated, IsOwner]
@@ -237,17 +238,17 @@ class FuelEntryViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Изоляция данных: возвращаем только записи текущего пользователя.
-        Используем select_related для оптимизации запросов к связанным объектам.
+        Data isolation: return only current user's entries.
+        Use select_related for optimization of related object queries.
         """
         queryset = FuelEntry.objects.filter(user=self.request.user).select_related('vehicle', 'user')
         
-        # Фильтрация по vehicle (опционально)
+        # Filter by vehicle (optional)
         vehicle_id = self.request.query_params.get('vehicle', None)
         if vehicle_id is not None:
             queryset = queryset.filter(vehicle_id=vehicle_id)
         
-        # Фильтрация по диапазону дат (опционально)
+        # Filter by date range (optional)
         date_after = self.request.query_params.get('date_after', None)
         date_before = self.request.query_params.get('date_before', None)
         
@@ -256,17 +257,17 @@ class FuelEntryViewSet(viewsets.ModelViewSet):
         if date_before:
             queryset = queryset.filter(entry_date__lte=date_before)
         
-        # Фильтрация по бренду топлива (опционально)
+        # Filter by fuel brand (optional)
         fuel_brand = self.request.query_params.get('fuel_brand', None)
         if fuel_brand:
             queryset = queryset.filter(fuel_brand__icontains=fuel_brand)
         
-        # Фильтрация по типу топлива (опционально)
+        # Filter by fuel grade (optional)
         fuel_grade = self.request.query_params.get('fuel_grade', None)
         if fuel_grade:
             queryset = queryset.filter(fuel_grade__icontains=fuel_grade)
         
-        # Фильтрация по названию станции (опционально)
+        # Filter by station name (optional)
         station_name = self.request.query_params.get('station_name', None)
         if station_name:
             queryset = queryset.filter(station_name__icontains=station_name)
@@ -276,17 +277,17 @@ class FuelEntryViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def perform_create(self, serializer):
         """
-        При создании записи:
-        1. Привязываем к текущему пользователю
-        2. Сохраняем в БД
-        3. Вычисляем метрики
-        4. Пересчитываем метрики последующих записей (если есть)
-        5. Инвалидируем кэш статистики
+        When creating entry:
+        1. Bind to current user
+        2. Save to DB
+        3. Calculate metrics
+        4. Recalculate metrics for subsequent entries (if any)
+        5. Invalidate statistics cache
         """
-        # Сохраняем запись
+        # Save entry
         fuel_entry = serializer.save(user=self.request.user)
         
-        # Вычисляем метрики для текущей записи
+        # Calculate metrics for current entry
         FuelEntryMetricsService.calculate_metrics(fuel_entry)
         fuel_entry.save(update_fields=[
             'unit_price', 
@@ -295,25 +296,25 @@ class FuelEntryViewSet(viewsets.ModelViewSet):
             'cost_per_km'
         ])
         
-        # Пересчитываем метрики для всех последующих записей
+        # Recalculate metrics for all subsequent entries
         FuelEntryMetricsService.recalculate_metrics_after_entry(fuel_entry)
         
-        # Инвалидируем кэш статистики для этого пользователя
+        # Invalidate statistics cache for this user
         self._invalidate_statistics_cache(fuel_entry.user_id)
 
     @transaction.atomic
     def perform_update(self, serializer):
         """
-        При обновлении записи:
-        1. Сохраняем изменения
-        2. Пересчитываем метрики текущей записи
-        3. Пересчитываем метрики всех последующих записей
-        4. Инвалидируем кэш статистики
+        When updating entry:
+        1. Save changes
+        2. Recalculate metrics for current entry
+        3. Recalculate metrics for all subsequent entries
+        4. Invalidate statistics cache
         """
-        # Сохраняем обновленную запись
+        # Save updated entry
         fuel_entry = serializer.save()
         
-        # Пересчитываем метрики для текущей записи
+        # Recalculate metrics for current entry
         FuelEntryMetricsService.calculate_metrics(fuel_entry)
         fuel_entry.save(update_fields=[
             'unit_price', 
@@ -322,59 +323,39 @@ class FuelEntryViewSet(viewsets.ModelViewSet):
             'cost_per_km'
         ])
         
-        # Пересчитываем метрики для всех последующих записей
+        # Recalculate metrics for all subsequent entries
         FuelEntryMetricsService.recalculate_metrics_after_entry(fuel_entry)
         
-        # Инвалидируем кэш статистики для этого пользователя
+        # Invalidate statistics cache for this user
         self._invalidate_statistics_cache(fuel_entry.user_id)
 
     @transaction.atomic
     def perform_destroy(self, instance):
         """
-        При удалении записи:
-        1. Сохраняем vehicle_id и user_id
-        2. Удаляем запись
-        3. Пересчитываем метрики для всех оставшихся записей автомобиля
-        4. Инвалидируем кэш статистики
+        When deleting entry:
+        1. Save vehicle_id and user_id
+        2. Delete entry
+        3. Recalculate metrics for all remaining vehicle entries
+        4. Invalidate statistics cache
         """
         vehicle_id = instance.vehicle_id
         user_id = instance.user_id
         
-        # Удаляем запись
+        # Delete entry
         instance.delete()
         
-        # Пересчитываем метрики для всех записей этого автомобиля
+        # Recalculate metrics for all entries of this vehicle
         FuelEntryMetricsService.recalculate_all_metrics_for_vehicle(vehicle_id)
         
-        # Инвалидируем кэш статистики для этого пользователя
+        # Invalidate statistics cache for this user
         self._invalidate_statistics_cache(user_id)
     
     def _invalidate_statistics_cache(self, user_id: int):
         """
-        Инвалидирует весь кэш статистики для пользователя.
-        Использует паттерн с префиксом для удаления всех ключей.
+        Invalidates statistics cache for user by updating version key.
+        This makes all old cache entries invalid.
         """
-        # Удаляем все ключи кэша для этого пользователя
-        cache_pattern = f'dashboard_stats_user{user_id}_*'
-        # Django redis не поддерживает delete_pattern из коробки,
-        # поэтому просто удаляем весь кэш для этого пользователя
-        # В production можно использовать более сложную логику с Redis SCAN
-        # Для простоты сбрасываем все возможные комбинации
-        for period in ['30d', '90d', 'ytd']:
-            for vehicle_id in [None, '*']:
-                cache_key = f'dashboard_stats_user{user_id}_vehicle{vehicle_id}_period{period}_afterNone_beforeNone'
-                cache.delete(cache_key)
-        
-        # Инвалидируем кэш статистики по брендам и маркам
-        cache.delete(f'brand_stats_user{user_id}_vehicleNone')
-        cache.delete(f'grade_stats_user{user_id}_vehicleNone')
-        
-        # Инвалидируем кэш для всех автомобилей пользователя
-        from api.models import Vehicle
-        user_vehicles = Vehicle.objects.filter(user_id=user_id).values_list('id', flat=True)
-        for vehicle_id in user_vehicles:
-            cache.delete(f'brand_stats_user{user_id}_vehicle{vehicle_id}')
-            cache.delete(f'grade_stats_user{user_id}_vehicle{vehicle_id}')
+        cache.set(f'stats_version_user_{user_id}', timezone.now().timestamp())
 
 
 @extend_schema(
@@ -455,16 +436,16 @@ class FuelEntryViewSet(viewsets.ModelViewSet):
 @permission_classes([permissions.IsAuthenticated])
 def dashboard_statistics(request):
     """
-    Эндпоинт для получения статистики дашборда.
+    Endpoint for retrieving dashboard statistics.
     
     Query Parameters:
-    - vehicle: ID автомобиля (опционально)
-    - period: тип периода (30d, 90d, ytd, custom), по умолчанию 30d
-    - date_after: начало периода (для period=custom), формат YYYY-MM-DD
-    - date_before: конец периода (для period=custom), формат YYYY-MM-DD
+    - vehicle: Vehicle ID (optional)
+    - period: Period type (30d, 90d, ytd, custom), default 30d
+    - date_after: Period start (for period=custom), format YYYY-MM-DD
+    - date_before: Period end (for period=custom), format YYYY-MM-DD
     
-    Использует кэширование для оптимизации производительности.
-    Кэш инвалидируется при создании/обновлении/удалении записей.
+    Uses caching for performance optimization.
+    Cache is invalidated when creating/updating/deleting entries.
     """
     user_id = request.user.id
     vehicle_id = request.query_params.get('vehicle', None)
@@ -472,14 +453,14 @@ def dashboard_statistics(request):
     date_after_str = request.query_params.get('date_after', None)
     date_before_str = request.query_params.get('date_before', None)
     
-    # Валидация period_type
+    # Validation period_type
     if period_type not in ['30d', '90d', 'ytd', 'custom']:
         return Response(
             {'errors': [{'status': '400', 'code': 'invalid_period', 'detail': 'Invalid period type. Must be one of: 30d, 90d, ytd, custom'}]},
             status=status.HTTP_400_BAD_REQUEST
         )
     
-    # Парсинг дат для custom периода
+    # Parse dates for custom period
     date_after = None
     date_before = None
     if period_type == 'custom':
@@ -497,7 +478,7 @@ def dashboard_statistics(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
     
-    # Валидация custom period range (защита от DoS через большие периоды)
+    # Validate custom period range (DoS protection via large periods)
     if period_type == 'custom' and date_after and date_before:
         date_range = (date_before - date_after).days
         if date_range > 365:
@@ -509,22 +490,26 @@ def dashboard_statistics(request):
                 }]
             }, status=status.HTTP_400_BAD_REQUEST)
     
-    # Формируем безопасный ключ кэша (защита от cache pollution)
+    # Get statistics cache version key
+    stats_version = cache.get(f'stats_version_user_{user_id}', 1)
+    
+    # Form safe cache key (protection against cache pollution)
     cache_key = generate_safe_cache_key(
         'dashboard_stats',
         user_id,
+        version=stats_version,
         vehicle=vehicle_id,
         period=period_type,
         after=date_after_str,
         before=date_before_str
     )
     
-    # Пытаемся получить из кэша
+    # Try to get from cache
     cached_result = cache.get(cache_key)
     if cached_result is not None:
         return Response(cached_result)
     
-    # Вычисляем статистику
+    # Calculate statistics
     try:
         result = StatisticsService.calculate_dashboard_statistics(
             user_id=user_id,
@@ -539,7 +524,7 @@ def dashboard_statistics(request):
             status=status.HTTP_400_BAD_REQUEST
         )
     
-    # Кэшируем на 5 минут (300 секунд)
+    # Cache for 5 minutes (300 seconds)
     cache.set(cache_key, result, 300)
 
     return Response(result)
@@ -591,39 +576,43 @@ def dashboard_statistics(request):
 @permission_classes([permissions.IsAuthenticated])
 def brand_statistics(request):
     """
-    Эндпоинт для получения статистики по брендам топлива.
+    Endpoint for retrieving fuel brand statistics.
 
     Query Parameters:
-    - vehicle: ID автомобиля (опционально)
+    - vehicle: Vehicle ID (optional)
 
-    Возвращает all-time статистику для каждого бренда:
-    - average_consumption: средний расход (л/100км)
-    - average_unit_price: средняя цена за литр
-    - average_cost_per_km: средняя стоимость за км
-    - fill_count: количество заправок
+    Returns all-time statistics for each brand:
+    - average_consumption: average consumption (L/100km)
+    - average_unit_price: average price per liter
+    - average_cost_per_km: average cost per km
+    - fill_count: number of fill-ups
     """
     user_id = request.user.id
     vehicle_id = request.query_params.get('vehicle', None)
     
-    # Формируем безопасный ключ кэша
+    # Get statistics cache version key
+    stats_version = cache.get(f'stats_version_user_{user_id}', 1)
+    
+    # Form safe cache key
     cache_key = generate_safe_cache_key(
         'brand_stats',
         user_id,
+        version=stats_version,
         vehicle=vehicle_id
     )
     
-    # Пытаемся получить из кэша
+    # Try to get from cache
     cached_result = cache.get(cache_key)
     if cached_result is not None:
         return Response(cached_result)
 
-    # Вычисляем статистику
+    # Calculate statistics
     result = StatisticsService.calculate_brand_statistics(
         user_id=user_id,
         vehicle_id=int(vehicle_id) if vehicle_id else None
     )
 
-    # Кэшируем на 5 минут (300 секунд)
+    # Cache for 5 minutes (300 seconds)
     cache.set(cache_key, result, 300)
 
     return Response(result)
@@ -674,39 +663,43 @@ def brand_statistics(request):
 @permission_classes([permissions.IsAuthenticated])
 def grade_statistics(request):
     """
-    Эндпоинт для получения статистики по маркам топлива.
+    Endpoint for retrieving fuel grade statistics.
 
     Query Parameters:
-    - vehicle: ID автомобиля (опционально)
+    - vehicle: Vehicle ID (optional)
 
-    Возвращает all-time статистику для каждой марки:
-    - average_consumption: средний расход (л/100км)
-    - average_unit_price: средняя цена за литр
-    - average_cost_per_km: средняя стоимость за км
-    - fill_count: количество заправок
+    Returns all-time statistics for each grade:
+    - average_consumption: average consumption (L/100km)
+    - average_unit_price: average price per liter
+    - average_cost_per_km: average cost per km
+    - fill_count: number of fill-ups
     """
     user_id = request.user.id
     vehicle_id = request.query_params.get('vehicle', None)
     
-    # Формируем безопасный ключ кэша
+    # Get statistics cache version key
+    stats_version = cache.get(f'stats_version_user_{user_id}', 1)
+    
+    # Form safe cache key
     cache_key = generate_safe_cache_key(
         'grade_stats',
         user_id,
+        version=stats_version,
         vehicle=vehicle_id
     )
     
-    # Пытаемся получить из кэша
+    # Try to get from cache
     cached_result = cache.get(cache_key)
     if cached_result is not None:
         return Response(cached_result)
 
-    # Вычисляем статистику
+    # Calculate statistics
     result = StatisticsService.calculate_grade_statistics(
         user_id=user_id,
         vehicle_id=int(vehicle_id) if vehicle_id else None
     )
 
-    # Кэшируем на 5 минут (300 секунд)
+    # Cache for 5 minutes (300 seconds)
     cache.set(cache_key, result, 300)
 
     return Response(result)

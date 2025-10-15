@@ -1,5 +1,5 @@
 /**
- * Утилиты для обработки ошибок API
+ * API error handling utilities
  */
 
 export interface ApiError {
@@ -16,19 +16,19 @@ export interface ApiErrorResponse {
 }
 
 /**
- * Извлекает понятное сообщение об ошибке из ответа API
+ * Extract clear error message from API response
  */
 export const getErrorMessage = (error: any): string => {
-  // Если это уже строка
+  // If it's already a string
   if (typeof error === 'string') {
     return error;
   }
 
-  // Если есть response с данными
+  // If there's response with data
   if (error.response?.data) {
     const data: ApiErrorResponse = error.response.data;
     
-    // Если есть массив ошибок
+    // If there's error array
     if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
       const firstError = data.errors[0];
       if (firstError.field) {
@@ -37,18 +37,18 @@ export const getErrorMessage = (error: any): string => {
       return firstError.detail;
     }
     
-    // Если есть detail
+    // If there's detail
     if (data.detail) {
       return data.detail;
     }
     
-    // Если есть message
+    // If there's message
     if (data.message) {
       return data.message;
     }
   }
 
-  // Если есть статус код
+  // If there's status code
   if (error.response?.status) {
     const status = error.response.status;
     switch (status) {
@@ -73,12 +73,12 @@ export const getErrorMessage = (error: any): string => {
     }
   }
 
-  // Если есть message
+  // If there's message
   if (error.message) {
     return error.message;
   }
 
-  // Если есть code
+  // If there is code
   if (error.code) {
     return `Error: ${error.code}`;
   }
@@ -88,7 +88,7 @@ export const getErrorMessage = (error: any): string => {
 };
 
 /**
- * Извлекает ошибки валидации полей из ответа API
+ * Extract field validation errors from API response
  */
 export const getFieldErrors = (error: any): Record<string, string> => {
   const fieldErrors: Record<string, string> = {};
@@ -105,21 +105,21 @@ export const getFieldErrors = (error: any): Record<string, string> => {
 };
 
 /**
- * Проверяет, является ли ошибка ошибкой валидации
+ * Check if error is validation error
  */
 export const isValidationError = (error: any): boolean => {
   return error.response?.status === 400 || error.response?.status === 422;
 };
 
 /**
- * Проверяет, является ли ошибка ошибкой аутентификации
+ * Check if error is authentication error
  */
 export const isAuthError = (error: any): boolean => {
   return error.response?.status === 401 || error.response?.status === 403;
 };
 
 /**
- * Проверяет, является ли ошибка ошибкой сети
+ * Check if error is network error
  */
 export const isNetworkError = (error: any): boolean => {
   return !error.response && error.code === 'NETWORK_ERROR';

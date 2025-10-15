@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { FUEL_TYPES } from '@/shared/lib/constants';
 
 /**
- * Схема для создания/редактирования автомобиля
+ * Schema for creating/editing vehicle
  */
 export const vehicleSchema = z.object({
   name: z
@@ -15,24 +15,23 @@ export const vehicleSchema = z.object({
     .number()
     .int('Year must be an integer')
     .min(1900, 'Year must be 1900 or later')
-    .max(new Date().getFullYear() + 1, 'Year cannot be in the future')
-    .optional()
+    .max(new Date().getFullYear() + 1, `Year cannot be in the future`)
     .nullable(),
-  fuel_type: z
-    .string()
-    .max(20, 'Fuel type must be less than 20 characters')
-    .optional()
-    .or(z.literal('')),
+  initial_odometer: z
+    .union([z.number(), z.string()])
+    .transform((val) => (typeof val === 'string' ? parseInt(val, 10) || 0 : val))
+    .pipe(z.number().int().nonnegative('Initial odometer cannot be negative')),
+  fuel_type: z.string().max(50, 'Fuel type must be 50 characters or less').optional(),
   is_active: z.boolean().default(true),
 });
 
 /**
- * Тип данных формы автомобиля
+ * Vehicle form data type
  */
 export type VehicleFormData = z.infer<typeof vehicleSchema>;
 
 /**
- * Дефолтные значения для формы
+ * Default values for form
  */
 export const defaultVehicleValues: VehicleFormData = {
   name: '',

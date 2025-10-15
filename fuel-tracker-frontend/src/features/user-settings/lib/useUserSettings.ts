@@ -5,17 +5,17 @@ import { useUserSettingsStore } from '@/app/stores';
 import type { UpdateUserSettingsDto } from '@/entities/user';
 
 /**
- * Хук для работы с настройками пользователя
+ * Hook for working with user settings
  */
 export const useUserSettings = () => {
   const { setSettings, setLoading } = useUserSettingsStore();
 
-  // Query для получения настроек пользователя
+  // Query for getting user settings
   const settingsQuery = useQuery({
     queryKey: ['user', 'settings'],
     queryFn: async () => {
       const user = await userApi.getMe();
-      // Синхронизируем с локальным store
+      // Sync with local store
       setSettings({
         preferred_currency: user.preferred_currency,
         preferred_distance_unit: user.preferred_distance_unit,
@@ -26,14 +26,14 @@ export const useUserSettings = () => {
     },
   });
 
-  // Mutation для обновления настроек
+  // Mutation for updating settings
   const updateSettingsMutation = useMutation({
     mutationFn: (settings: UpdateUserSettingsDto) => userApi.updateMe(settings),
     onMutate: () => {
       setLoading(true);
     },
     onSuccess: (user) => {
-      // Синхронизируем с локальным store
+      // Sync with local store
       setSettings({
         preferred_currency: user.preferred_currency,
         preferred_distance_unit: user.preferred_distance_unit,
