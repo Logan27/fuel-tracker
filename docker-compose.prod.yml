@@ -11,7 +11,7 @@ services:
     networks:
       - fuel-tracker-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fuel_user}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fuel_user} -d ${DB_NAME:-fuel_tracker}"]
       interval: 10s
       timeout: 5s
       retries: 5
