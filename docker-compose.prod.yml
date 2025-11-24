@@ -36,6 +36,13 @@ services:
       context: ./fuel-tracker-backend
       dockerfile: Dockerfile
     container_name: fuel-tracker-backend
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn fuel_tracker.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 60 --access-logfile - --error-logfile -"
+    volumes:
+      - backend_logs:/app/logs
+      - static_files:/app/staticfiles
     environment:
       - DEBUG=False
       - SECRET_KEY=${SECRET_KEY}
@@ -82,4 +89,6 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  backend_logs:
+  static_files:
 
