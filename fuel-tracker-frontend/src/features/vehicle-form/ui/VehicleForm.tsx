@@ -126,7 +126,14 @@ export const VehicleForm = ({
                 <FormItem>
                   <FormLabel>Year</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="e.g., 2023" {...field} />
+                    <Input
+                      type="number"
+                      placeholder="e.g., 2023"
+                      {...field}
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(e.target.value === '' ? null : e.target.value)}
+                      disabled={isLoading}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

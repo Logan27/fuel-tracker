@@ -9,6 +9,7 @@ interface VehicleListProps {
   isLoading?: boolean;
   onEdit: (vehicle: Vehicle) => void;
   onDelete: (vehicle: Vehicle) => void;
+  onAddVehicle?: () => void;
 }
 
 export const VehicleList = ({
@@ -16,6 +17,7 @@ export const VehicleList = ({
   isLoading = false,
   onEdit,
   onDelete,
+  onAddVehicle,
 }: VehicleListProps) => {
   const { selectedVehicleId, setSelectedVehicleId } = useVehicleStore();
 
@@ -30,7 +32,7 @@ export const VehicleList = ({
   }
 
   if (vehicles.length === 0) {
-    return <EmptyVehicles message="You haven't added any vehicles yet." />;
+    return <EmptyVehicles onAddVehicle={onAddVehicle || (() => {})} />;
   }
 
   return (

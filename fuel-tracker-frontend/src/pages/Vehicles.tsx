@@ -231,6 +231,7 @@ const Vehicles = () => {
         isLoading={isLoading}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
+        onAddVehicle={() => setIsCreateDialogOpen(true)}
       />
 
       {/* Create Vehicle Dialog */}

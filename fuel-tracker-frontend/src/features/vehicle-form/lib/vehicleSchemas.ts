@@ -12,11 +12,12 @@ export const vehicleSchema = z.object({
   make: z.string().max(50, 'Make must be less than 50 characters').optional().or(z.literal('')),
   model: z.string().max(50, 'Model must be less than 50 characters').optional().or(z.literal('')),
   year: z
-    .number()
+    .coerce.number()
     .int('Year must be an integer')
     .min(1900, 'Year must be 1900 or later')
     .max(new Date().getFullYear() + 1, `Year cannot be in the future`)
-    .nullable(),
+    .nullable()
+    .optional(),
   initial_odometer: z.coerce.number().int().nonnegative('Initial odometer cannot be negative').default(0),
   fuel_type: z.string().max(50, 'Fuel type must be 50 characters or less').optional(),
   is_active: z.boolean().default(true),
