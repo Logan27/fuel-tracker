@@ -45,7 +45,7 @@ An MVP application for tracking vehicle fuel consumption.
 git clone https://github.com/Logan27/fuel-tracker.git
 cd fuel-tracker
 
-# 2. Create .env files (see SETUP.md)
+# 2. Create .env files (see DEPLOYMENT.md)
 cp fuel-tracker-backend/.env.example fuel-tracker-backend/.env
 cp fuel-tracker-frontend/.env.example fuel-tracker-frontend/.env
 
@@ -53,7 +53,7 @@ cp fuel-tracker-frontend/.env.example fuel-tracker-frontend/.env
 docker compose up --build
 ```
 
-**Detailed instructions:** See [SETUP.md](SETUP.md)
+**Detailed instructions:** See [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ### Production Build
 
@@ -74,10 +74,16 @@ chmod +x build-frontend.sh
 
 ### Accessing the Application
 
+**Local Development:**
 - **Frontend:** http://localhost:3000
 - **Backend API:** http://localhost:8000
 - **Swagger UI:** http://localhost:8000/api/v1/schema/swagger-ui/
 - **ReDoc:** http://localhost:8000/api/v1/schema/redoc/
+
+**Production (Live Demo):**
+- **Application:** https://fuel-tracker.logan27.store
+- **API:** https://fuel-tracker.logan27.store/api
+- **API Docs:** https://fuel-tracker.logan27.store/api/v1/schema/swagger-ui/
 
 ### Test Users
 
@@ -86,13 +92,14 @@ chmod +x build-frontend.sh
 
 ## 📚 Documentation
 
-- **[SETUP.md](SETUP.md)** - Installation and setup instructions
-- **[docs/brd.md](docs/brd.md)** - Business requirements
-- **[docs/arch.md](docs/arch.md)** - System architecture
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Production deployment guide (Docker, HTTPS, environment setup)
+- **[docs/brd.md](docs/brd.md)** - Business requirements document
+- **[docs/arch.md](docs/arch.md)** - System architecture and design
 - **[docs/rest-api.md](docs/rest-api.md)** - REST API specification
-- **[docs/security-audit.md](docs/security-audit.md)** - Security report
-- **[docs/roadmap.md](docs/roadmap.md)** - Development plan
-- **[SECURITY.md](fuel-tracker-backend/SECURITY.md)** - Security policy
+- **[docs/security-audit.md](docs/security-audit.md)** - Security audit report
+- **[docs/roadmap.md](docs/roadmap.md)** - Development roadmap and milestones
+- **[docs/test-cases.md](docs/test-cases.md)** - Test cases and QA documentation
+- **[SECURITY.md](fuel-tracker-backend/SECURITY.md)** - Security policy and best practices
 
 ## 🔐 Security
 
@@ -202,11 +209,14 @@ Healthchecks for all services ensure the correct startup order.
 The code is ready for deployment:
 - ✅ Environment variables for all settings
 - ✅ Proper error handling and logging
-- ✅ Security headers
-- ✅ HTTPS ready (setup in production)
+- ✅ Security headers (HSTS, CSP, X-Frame-Options)
+- ✅ HTTPS with Let's Encrypt SSL
+- ✅ Single-domain deployment configuration
 - ✅ Database migrations
 - ✅ Static files handling
-- ✅ Comprehensive tests
+- ✅ Comprehensive tests (91% backend coverage)
+- ✅ Docker production builds with Gunicorn
+- ✅ Nginx reverse proxy configuration
 
 ## 🤝 Contributing
 
