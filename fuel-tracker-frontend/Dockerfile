@@ -22,6 +22,12 @@ COPY index.html ./
 COPY src ./src
 COPY public ./public
 
+# Build argument for API URL (defaults to relative path for nginx proxy)
+ARG VITE_API_URL=/api/v1
+
+# Set environment variable for build
+ENV VITE_API_URL=$VITE_API_URL
+
 # Build production build
 RUN npm run build
 
